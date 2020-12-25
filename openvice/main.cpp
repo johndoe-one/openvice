@@ -10,7 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "renderware.h"
+#include <renderware.h>
 #include "shader.h"
 
 GLFWwindow* window;

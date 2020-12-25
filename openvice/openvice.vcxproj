@@ -87,7 +87,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Files\Projects\openvice\glfw-3.3.2.bin.WIN64\include;C:\Files\Projects\openvice\glew-2.1.0-win32\glew-2.1.0\include;C:\Files\Projects\openvice\rwtools-master\include;C:\Files\Projects\openvice\glm-0.9.9.8\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Files\Projects\openvice\glfw-3.3.2.bin.WIN64\include;C:\Files\Projects\openvice\glew-2.1.0-win32\glew-2.1.0\include;C:\Files\Projects\openvice\glm-0.9.9.8\glm;C:\Files\Projects\openvice\openvice\openvice\rwtools-master;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -127,25 +127,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\rwtools-master\src\dffconv.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\dffread.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\dffwrite.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\dumprwtree.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\oglnative.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\ps2native.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\renderware.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\txdconv.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\txdex.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\txdread.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\txdwrite.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\uvanim.cpp" />
-    <ClCompile Include="..\..\rwtools-master\src\xboxnative.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="rwtools-master\dffconv.cpp" />
+    <ClCompile Include="rwtools-master\dffread.cpp" />
+    <ClCompile Include="rwtools-master\dffwrite.cpp" />
+    <ClCompile Include="rwtools-master\dumprwtree.cpp" />
+    <ClCompile Include="rwtools-master\oglnative.cpp" />
+    <ClCompile Include="rwtools-master\ps2native.cpp" />
+    <ClCompile Include="rwtools-master\renderware.cpp" />
+    <ClCompile Include="rwtools-master\txdconv.cpp" />
+    <ClCompile Include="rwtools-master\txdex.cpp" />
+    <ClCompile Include="rwtools-master\txdread.cpp" />
+    <ClCompile Include="rwtools-master\txdwrite.cpp" />
+    <ClCompile Include="rwtools-master\uvanim.cpp" />
+    <ClCompile Include="rwtools-master\xboxnative.cpp" />
     <ClCompile Include="shader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\rwtools-master\include\renderware.h" />
-    <ClInclude Include="..\..\rwtools-master\src\args.h" />
+    <ClInclude Include="rwtools-master\args.h" />
+    <ClInclude Include="rwtools-master\renderware.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

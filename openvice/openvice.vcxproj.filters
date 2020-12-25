@@ -14,65 +14,65 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="Исходные файлы\rwtools">
-      <UniqueIdentifier>{d2755caf-6307-4719-b7db-50af979bf116}</UniqueIdentifier>
+      <UniqueIdentifier>{da681eca-ad34-4e8e-a692-8f008a286b06}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\dffconv.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\dffread.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\dffwrite.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\dumprwtree.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\oglnative.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\ps2native.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\renderware.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\txdconv.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\txdex.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\txdread.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\txdwrite.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\uvanim.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\rwtools-master\src\xboxnative.cpp">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClCompile>
     <ClCompile Include="shader.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="rwtools-master\dffconv.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\dffread.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\dffwrite.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\dumprwtree.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\oglnative.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\ps2native.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\renderware.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\txdconv.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\txdex.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\txdread.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\txdwrite.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\uvanim.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
+    <ClCompile Include="rwtools-master\xboxnative.cpp">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\rwtools-master\src\args.h">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\rwtools-master\include\renderware.h">
-      <Filter>Исходные файлы\rwtools</Filter>
-    </ClInclude>
     <ClInclude Include="shader.h">
       <Filter>Исходные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="rwtools-master\args.h">
+      <Filter>Исходные файлы\rwtools</Filter>
+    </ClInclude>
+    <ClInclude Include="rwtools-master\renderware.h">
+      <Filter>Исходные файлы\rwtools</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
