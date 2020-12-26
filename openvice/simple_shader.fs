@@ -1,12 +1,16 @@
 #version 330 core
 
 // Output data
-out vec3 color;
+out vec4 color;
+
+// From vertex shader
+in vec2 TexCoord;
+in vec3 Normal;
+
+// Texture samplers
+uniform sampler2D texture1;
 
 void main()
 {
-
-	// Output color = red 
-	color = vec3(1,0,0);
-
+	color = texture(texture1, TexCoord);
 }

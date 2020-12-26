@@ -33,13 +33,25 @@ float lastX = SCREEN_W / 2.0;
 float lastY = SCREEN_H / 2.0;
 float fov = 45.0f;
 
+
+struct Mate {
+	unsigned int textureId;
+	std::string textureName;
+};
+
+std::vector<struct Mate> textures;
+
+
 class Mesh {
 private:
 	unsigned int gVBO, gVAO, gEBO;
 	std::vector<float32> vertices;
 	std::vector<rw::uint32> indices;
+	std::vector<float32> texCoords;
 
 public:
+	std::string textureName;
+
 	void addVertex(rw::float32 vertex)
 	{
 		vertices.push_back(vertex);
@@ -68,14 +80,37 @@ public:
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(rw::uint32),
 			&indices.front(), GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0,
+		glVertexAttribPointer(
+			0,
 			3,
 			GL_FLOAT,
 			GL_FALSE, 
-			0, 
+			8 * sizeof(rw::float32), 
 			(void*)0
 		);
 		glEnableVertexAttribArray(0);
+
+		// texture attribute
+		glVertexAttribPointer(
+			1,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			8 * sizeof(rw::float32),
+			(void*)(3 * sizeof(rw::float32))
+		);
+		glEnableVertexAttribArray(1);
+
+		// texture attribute
+		glVertexAttribPointer(
+			2, 
+			2,
+			GL_FLOAT, 
+			GL_FALSE, 
+			8 * sizeof(rw::float32), 
+			(void*)(6 * sizeof(rw::float32))
+		);
+		glEnableVertexAttribArray(2);
 
 		glBindVertexArray(0);
 
@@ -85,9 +120,21 @@ public:
 
 	void drawMesh()
 	{
+		// bind textures on corresponding texture units
+		glActiveTexture(GL_TEXTURE0);
+
+		for (uint32 i = 0; i < textures.size(); i++) {
+			if (textures[i].textureName == textureName) {
+				unsigned int textureId = textures[i].textureId;
+				glBindTexture(GL_TEXTURE_2D, textureId);
+				cout << "draw texture name = " << textureName.c_str() << endl;
+			}
+		}
+
 		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
 		glBindVertexArray(gVAO);
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLE_STRIP, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		//cout << glGetError();
@@ -105,6 +152,75 @@ public:
 	};
 };
 
+extern void loadTXDTtexture(const char* filename);
+
+#include <fstream>
+
+
+void loadTexture(const char *filename)
+{
+	// load txd and store names to vector
+	//loadTXDTtexture(filename);
+
+	ifstream rw(filename, ios::binary);
+	rw::TextureDictionary txd;
+	txd.read(rw);
+	rw.close();
+
+	for (uint32 i = 0; i < txd.texList.size(); i++) {
+
+		rw::NativeTexture& t = txd.texList[i];
+		cout << i << " " << t.name << " " << t.maskName << " "
+			<< " " << t.width[0] << " " << t.height[0] << " "
+			<< " " << t.depth << " " << hex << t.rasterFormat << endl;
+
+		if (txd.texList[i].platform == rw::PLATFORM_PS2)
+			txd.texList[i].convertFromPS2(0x40);
+
+		if (txd.texList[i].platform == rw::PLATFORM_XBOX)
+			txd.texList[i].convertFromXbox();
+
+		if (txd.texList[i].dxtCompression)
+			txd.texList[i].decompressDxt();
+
+		txd.texList[i].convertTo32Bit();
+		txd.texList[i].writeTGA();
+
+		
+
+		GLuint texture;
+		glGenTextures(1, &texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
+		// set the texture wrapping parameters
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		// set texture filtering parameters
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RGBA, // t.hasAlpha ? GL_RGBA : GL_RGB,
+			t.width[0],
+			t.height[0],
+			0,
+			GL_RGBA, // t.hasAlpha ? GL_RGBA : GL_RGB, 
+			GL_UNSIGNED_BYTE,
+			txd.texList[i].texels.front()
+		);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		//cout << glGetError();
+		assert(glGetError() == GL_NO_ERROR);
+
+		struct Mate mate = { texture, t.name };
+		cout << "texture name = " << t.name << " tex_OpenGL_ID = " << texture << endl;
+		textures.push_back(mate);
+	}
+}
+
 class Model {
 private:
 	std::vector<Mesh*> meshes;
@@ -120,6 +236,20 @@ public:
 
 			Mesh* mesh = new Mesh();
 
+			for (uint32 i = 0; i < geometry.materialList.size(); i++) {
+				if (geometry.materialList[i].hasTex) {
+					cout << "tex object name (in txd file) = " << geometry.materialList[i].texture.name << endl;
+					mesh->textureName = geometry.materialList[i].texture.name;
+				}
+			}
+			/*for (uint32 i = 0; i < geometry.texCoords[0].size() / 2; i++) {
+				rw::float32 u = geometry.texCoords[0][i * 2 + 0];
+				rw::float32 v = geometry.texCoords[0][i * 2 + 1];
+
+				mesh->addTexCoords(u);
+				mesh->addTexCoords(v);
+			}*/
+
 			for (uint32 i = 0; i < geometry.vertices.size() / 3; i++) {
 				rw::float32 x = geometry.vertices[i * 3 + 0];
 				rw::float32 y = geometry.vertices[i * 3 + 1];
@@ -128,6 +258,22 @@ public:
 				mesh->addVertex(x);
 				mesh->addVertex(y);
 				mesh->addVertex(z);
+
+				// normals
+				rw::float32 nx = geometry.vertices[i * 3 + 0];
+				rw::float32 ny = geometry.vertices[i * 3 + 1];
+				rw::float32 nz = geometry.vertices[i * 3 + 2];
+
+				mesh->addVertex(nx);
+				mesh->addVertex(ny);
+				mesh->addVertex(nz);
+
+				// textures
+				rw::float32 u = geometry.texCoords[0][i * 2 + 0];
+				rw::float32 v = geometry.texCoords[0][i * 2 + 1];
+
+				mesh->addVertex(u);
+				mesh->addVertex(v);
 			}
 
 			for (uint32 i = 0; i < geometry.splits.size(); i++) {
@@ -172,12 +318,12 @@ void processInput(GLFWwindow *window)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	if (firstMouse)
 	{
@@ -235,8 +381,8 @@ int main(void)
 	}
 
 	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE); // Ensure we can capture the escape key being pressed below
 
@@ -255,22 +401,29 @@ int main(void)
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
+
+
 	glm::mat4 mat_projection = glm::perspective(glm::radians(45.0f), SCREEN_W / SCREEN_H, 0.1f, 100.0f);
 
 	rw::Clump* clump = new rw::Clump;
 	readDFF("C:\\Files\\Projects\\openvice\\barrel1.dff", clump);
+
+	loadTexture("C:\\Files\\Projects\\openvice\\dynbarrels.txd");
 	
-	Model* model = new Model();
+	Model *model = new Model();
 	model->createModel(clump);
 	
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	//cout << glGetError();
 	assert(glGetError() == GL_NO_ERROR);
+
+	glEnable(GL_DEPTH_TEST);
 	
 	while (!glfwWindowShouldClose(window))
 	{
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
 		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
 		processInput(window);
@@ -283,6 +436,10 @@ int main(void)
 		glm::mat4 mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		glm::mat4 MVP = mat_projection * mat_view * mat_model; // Remember, matrix multiplication is the other way around
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+
+		// either set it manually like so:
+		glUniform1i(glGetUniformLocation(programID, "texture1"), 0);
 
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
