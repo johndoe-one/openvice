@@ -51,6 +51,9 @@ private:
 
 public:
 	std::string textureName;
+	/*FACETYPE_STRIP = 0x1,
+	FACETYPE_LIST = 0x0*/
+	uint32 faceType;
 
 	void addVertex(rw::float32 vertex)
 	{
@@ -134,7 +137,18 @@ public:
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glBindVertexArray(gVAO);
-		glDrawElements(GL_TRIANGLE_STRIP, indices.size(), GL_UNSIGNED_INT, 0);
+
+		GLenum face = GL_TRIANGLES;
+
+		if (faceType == rw::FACETYPE_STRIP) {
+			face = GL_TRIANGLE_STRIP;
+		}
+		
+		if (faceType == rw::FACETYPE_LIST) {
+			face = GL_TRIANGLE_LIST_SUN; // ???
+		}
+
+		glDrawElements(face, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
 		//cout << glGetError();
@@ -274,6 +288,10 @@ public:
 
 				mesh->addVertex(u);
 				mesh->addVertex(v);
+
+
+				// facetype - triangle strip or another
+				mesh->faceType = geometry.faceType;
 			}
 
 			for (uint32 i = 0; i < geometry.splits.size(); i++) {
