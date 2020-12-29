@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <fstream>
 #include <assert.h>
 
 #include <GL/glew.h>
@@ -33,14 +34,12 @@ float lastX = SCREEN_W / 2.0;
 float lastY = SCREEN_H / 2.0;
 float fov = 45.0f;
 
+std::vector<struct Texture> textures;
 
-struct Mate {
+struct Texture {
 	unsigned int textureId;
 	std::string textureName;
 };
-
-std::vector<struct Mate> textures;
-
 
 class Mesh {
 private:
@@ -51,8 +50,6 @@ private:
 
 public:
 	std::string textureName;
-	/*FACETYPE_STRIP = 0x1,
-	FACETYPE_LIST = 0x0*/
 	uint32 faceType;
 
 	void addVertex(rw::float32 vertex)
@@ -83,6 +80,7 @@ public:
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(rw::uint32),
 			&indices.front(), GL_STATIC_DRAW);
 
+		// vertex attribute
 		glVertexAttribPointer(
 			0,
 			3,
@@ -93,7 +91,7 @@ public:
 		);
 		glEnableVertexAttribArray(0);
 
-		// texture attribute
+		// normal attribute
 		glVertexAttribPointer(
 			1,
 			3,
@@ -130,12 +128,14 @@ public:
 			if (textures[i].textureName == textureName) {
 				unsigned int textureId = textures[i].textureId;
 				glBindTexture(GL_TEXTURE_2D, textureId);
-				cout << "draw texture name = " << textureName.c_str() << endl;
+				// cout << "draw texture name = " << textureName.c_str() << endl;
 			}
 		}
 
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(0); // vertex
+		glEnableVertexAttribArray(1); // normal
+		glEnableVertexAttribArray(2); // texcoords
+
 		glBindVertexArray(gVAO);
 
 		GLenum face = GL_TRIANGLES;
@@ -166,16 +166,8 @@ public:
 	};
 };
 
-extern void loadTXDTtexture(const char* filename);
-
-#include <fstream>
-
-
 void loadTexture(const char *filename)
 {
-	// load txd and store names to vector
-	//loadTXDTtexture(filename);
-
 	ifstream rw(filename, ios::binary);
 	rw::TextureDictionary txd;
 	txd.read(rw);
@@ -184,9 +176,9 @@ void loadTexture(const char *filename)
 	for (uint32 i = 0; i < txd.texList.size(); i++) {
 
 		rw::NativeTexture& t = txd.texList[i];
-		cout << i << " " << t.name << " " << t.maskName << " "
+		/*cout << i << " " << t.name << " " << t.maskName << " "
 			<< " " << t.width[0] << " " << t.height[0] << " "
-			<< " " << t.depth << " " << hex << t.rasterFormat << endl;
+			<< " " << t.depth << " " << hex << t.rasterFormat << endl;*/
 
 		if (txd.texList[i].platform == rw::PLATFORM_PS2)
 			txd.texList[i].convertFromPS2(0x40);
@@ -200,11 +192,10 @@ void loadTexture(const char *filename)
 		txd.texList[i].convertTo32Bit();
 		txd.texList[i].writeTGA();
 
-		
-
-		GLuint texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		// create opengl texture
+		GLuint texture_id;
+		glGenTextures(1, &texture_id);
+		glBindTexture(GL_TEXTURE_2D, texture_id);
 
 		// set the texture wrapping parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
@@ -229,10 +220,98 @@ void loadTexture(const char *filename)
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
 
-		struct Mate mate = { texture, t.name };
-		cout << "texture name = " << t.name << " tex_OpenGL_ID = " << texture << endl;
-		textures.push_back(mate);
+		struct Texture _texture = { texture_id, t.name };
+		cout << "Created texture. Name = " << t.name << ". Texture OpenGL ID = " << texture_id << endl;
+		textures.push_back(_texture);
 	}
+}
+
+void cleanupTextures() {
+	for (uint32 i = 0; i < textures.size(); i++) {
+		glDeleteTextures(1, &textures[i].textureId);
+	}
+}
+
+void loadImgFile(const char *filepath) {
+
+}
+
+struct Objs {
+	unsigned int object_id;
+	std::string object_name;
+	std::string object_txd_file;
+};
+
+std::vector<Objs> objects;
+
+int loadObjsFromFileIde(const char *filepath) {
+	char line[80];
+
+	/* Open file */
+	FILE* file = fopen(filepath, "r");
+
+	if (!file) {
+		printf("Cannot open file %s.\n", filepath);
+		return 0;
+	}
+
+	int count_objs_items = 0;
+
+	bool is_objs_section = false;
+
+	while (!feof(file)) {
+		fgets(line, sizeof(line), file);
+
+		if (strcmp(line, "objs\n") == 0) { // equal
+			is_objs_section = true;
+			continue;
+		}
+
+		if (strcmp(line, "end\n") == 0) {
+			is_objs_section = false;
+			continue;
+		}
+		
+		if (is_objs_section) {
+			count_objs_items++;
+
+			unsigned int object_id;
+			std::string object_name;
+			std::string object_txd_file;
+
+			int index = 0;
+
+			char delim[] = ", ";
+			char* ptr = strtok(line, delim);
+
+			while (ptr != NULL) {
+				if (index == 0) {
+					object_id = std::stoul(std::string(ptr), nullptr, 0);;
+					printf("obj id = %d \n", object_id);
+				}
+
+				if (index == 1) {
+					object_name = ptr;
+					printf("obj name = %s \n", object_name.c_str());
+				}
+
+				if (index == 2) {
+					object_txd_file = ptr;
+					printf("obj txd name = %s \n", object_txd_file.c_str());
+				}
+
+				if (index == 2) {
+					struct Objs o = { object_id, object_name, object_txd_file };
+					objects.push_back(o);
+				}
+
+				ptr = strtok(NULL, delim);
+				index++;
+			}
+		}
+	}
+
+	fclose(file);
 }
 
 class Model {
@@ -245,24 +324,14 @@ public:
 		for (uint32 i = 0; i < clump->geometryList.size(); i++) {
 			rw::Geometry geometry = clump->geometryList[i];
 
-			std::vector<rw::float32> ver;
-			std::vector<rw::uint32> ind;
-
 			Mesh* mesh = new Mesh();
 
 			for (uint32 i = 0; i < geometry.materialList.size(); i++) {
 				if (geometry.materialList[i].hasTex) {
-					cout << "tex object name (in txd file) = " << geometry.materialList[i].texture.name << endl;
+					cout << "Model uses texture name = " << geometry.materialList[i].texture.name << endl;
 					mesh->textureName = geometry.materialList[i].texture.name;
 				}
 			}
-			/*for (uint32 i = 0; i < geometry.texCoords[0].size() / 2; i++) {
-				rw::float32 u = geometry.texCoords[0][i * 2 + 0];
-				rw::float32 v = geometry.texCoords[0][i * 2 + 1];
-
-				mesh->addTexCoords(u);
-				mesh->addTexCoords(v);
-			}*/
 
 			for (uint32 i = 0; i < geometry.vertices.size() / 3; i++) {
 				rw::float32 x = geometry.vertices[i * 3 + 0];
@@ -288,7 +357,6 @@ public:
 
 				mesh->addVertex(u);
 				mesh->addVertex(v);
-
 
 				// facetype - triangle strip or another
 				mesh->faceType = geometry.faceType;
@@ -326,14 +394,24 @@ void processInput(GLFWwindow *window)
 		glfwSetWindowShouldClose(window, true);
 
 	const float cameraSpeed = 0.05f; // adjust accordingly
+
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
+
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		cameraPos -= cameraSpeed * cameraFront;
+
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
@@ -377,6 +455,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 
 int main(void)
 {
+	loadObjsFromFileIde("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\generic.ide");
+
 	if (!glfwInit()) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
 		return -1;
@@ -427,7 +507,7 @@ int main(void)
 	readDFF("C:\\Files\\Projects\\openvice\\barrel1.dff", clump);
 
 	loadTexture("C:\\Files\\Projects\\openvice\\dynbarrels.txd");
-	
+
 	Model *model = new Model();
 	model->createModel(clump);
 	
@@ -479,6 +559,10 @@ int main(void)
 	delete clump;
 	
 	glDeleteProgram(programID);
+
+	cleanupTextures();
+
+	assert(glGetError() == GL_NO_ERROR);
 
 	glfwTerminate();
 
