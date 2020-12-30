@@ -13,6 +13,7 @@
 
 #include <renderware.h>
 #include "shader.h"
+#include "IMGArchive.h"
 
 using namespace glm;
 using namespace std;
@@ -232,8 +233,31 @@ void cleanupTextures() {
 	}
 }
 
-void loadImgFile(const char *filepath) {
+IMGArchive* newIMgArchive;
 
+void initImgFile(const char *filepath) {
+	newIMgArchive = new IMGArchive(filepath);
+}
+
+uchar* getImgFile(uint id) {
+	IMGArchiveFile* newFile = newIMgArchive->getFileByID(id);
+	if (newFile != NULL)
+	{
+		//Do some operations
+		cout << newFile->fileEntry->fileName << endl;
+		//Can get all bytes for the file and write it out into the separate file
+
+		return newFile->fileByteBuffer;
+	}
+
+	delete newFile;
+
+	return NULL;
+}
+
+void cleanupImgFile() {
+	
+	delete newIMgArchive;
 }
 
 struct Objs {
@@ -453,9 +477,17 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	cameraFront = glm::normalize(front);
 }
 
+
+#include <iostream>
+#include <istream>
+#include <streambuf>
+#include <string>
+
 int main(void)
 {
 	loadObjsFromFileIde("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\generic.ide");
+
+	initImgFile("C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.img");
 
 	if (!glfwInit()) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
@@ -504,7 +536,14 @@ int main(void)
 	glm::mat4 mat_projection = glm::perspective(glm::radians(45.0f), SCREEN_W / SCREEN_H, 0.1f, 100.0f);
 
 	rw::Clump* clump = new rw::Clump;
-	readDFF("C:\\Files\\Projects\\openvice\\barrel1.dff", clump);
+	
+
+	// char to ifstream
+	uchar *buffer = getImgFile(343); // barrel1
+
+	// load dff from ifstream
+	//read_dff_from_istream(buffer, clump);
+	 readDFF("C:\\Files\\Projects\\openvice\\barrel1.dff", clump);
 
 	loadTexture("C:\\Files\\Projects\\openvice\\dynbarrels.txd");
 
@@ -563,6 +602,8 @@ int main(void)
 	cleanupTextures();
 
 	assert(glGetError() == GL_NO_ERROR);
+
+	cleanupImgFile();
 
 	glfwTerminate();
 

@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IMGarchive.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="rwtools-master\dffconv.cpp" />
     <ClCompile Include="rwtools-master\dffread.cpp" />
@@ -144,6 +145,7 @@
     <ClCompile Include="shader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IMGArchive.h" />
     <ClInclude Include="rwtools-master\args.h" />
     <ClInclude Include="rwtools-master\renderware.h" />
     <ClInclude Include="shader.h" />

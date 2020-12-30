@@ -63,6 +63,9 @@
     <ClCompile Include="rwtools-master\xboxnative.cpp">
       <Filter>Исходные файлы\rwtools</Filter>
     </ClCompile>
+    <ClCompile Include="IMGarchive.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
@@ -73,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="rwtools-master\renderware.h">
       <Filter>Исходные файлы\rwtools</Filter>
+    </ClInclude>
+    <ClInclude Include="IMGArchive.h">
+      <Filter>Исходные файлы</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
