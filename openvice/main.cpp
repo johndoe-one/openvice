@@ -21,7 +21,6 @@ using namespace std;
 float SCREEN_W = 1920;
 float SCREEN_H = 1080;
 
-extern int readDFF(const char *, rw::Clump *_clump);
 
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -35,21 +34,31 @@ float lastX = SCREEN_W / 2.0;
 float lastY = SCREEN_H / 2.0;
 float fov = 45.0f;
 
-std::vector<struct Texture> textures;
+std::vector<struct Texture> all_textures;
 
 struct Texture {
-	unsigned int textureId;
+	unsigned int textureOpenGLId;
+	std::string textureName;
+};
+
+struct _Material {
+	int materialIndex;
 	std::string textureName;
 };
 
 class Mesh {
 private:
 	unsigned int gVBO, gVAO, gEBO;
-	std::vector<float32> vertices;
+	
 	std::vector<rw::uint32> indices;
-	std::vector<float32> texCoords;
+
+	
 
 public:
+	//uint32_t material_id;
+	std::vector<float32> vertices;
+	std::vector<float32> texCoords;
+
 	std::string textureName;
 	uint32 faceType;
 
@@ -125,11 +134,25 @@ public:
 		// bind textures on corresponding texture units
 		glActiveTexture(GL_TEXTURE0);
 
-		for (uint32 i = 0; i < textures.size(); i++) {
-			if (textures[i].textureName == textureName) {
-				unsigned int textureId = textures[i].textureId;
+		//for (uint32 i = 0; i < all_textures.size(); i++) {
+		//	if (all_textures[i].textureName == materials[material_id].textureName) {
+
+		//		glBindTexture(GL_TEXTURE_2D, all_textures[i].textureOpenGLId);
+
+		//		unsigned int textureId = all_textures[i].textureOpenGLId;
+		//		glBindTexture(GL_TEXTURE_2D, textureId);
+		//		// cout << "draw texture name = " << textureName.c_str() << endl;
+		//		break;
+		//	}
+		//}
+		
+
+		for (uint32 i = 0; i < all_textures.size(); i++) {
+			if (all_textures[i].textureName == textureName) {
+				unsigned int textureId = all_textures[i].textureOpenGLId;
 				glBindTexture(GL_TEXTURE_2D, textureId);
-				// cout << "draw texture name = " << textureName.c_str() << endl;
+				//cout << "draw texture name = " << textureName.c_str() << endl;
+				break;
 			}
 		}
 
@@ -152,6 +175,8 @@ public:
 		glDrawElements(face, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
+		//glBindTexture(GL_TEXTURE_2D, 0);
+
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
 	};
@@ -167,12 +192,72 @@ public:
 	};
 };
 
-void loadTexture(const char *filename)
+//void loadTexture(const char *filename)
+//{
+//	ifstream rw(filename, ios::binary);
+//	rw::TextureDictionary txd;
+//	txd.read(rw);
+//	rw.close();
+//
+//	for (uint32 i = 0; i < txd.texList.size(); i++) {
+//
+//		rw::NativeTexture& t = txd.texList[i];
+//		/*cout << i << " " << t.name << " " << t.maskName << " "
+//			<< " " << t.width[0] << " " << t.height[0] << " "
+//			<< " " << t.depth << " " << hex << t.rasterFormat << endl;*/
+//
+//		if (txd.texList[i].platform == rw::PLATFORM_PS2)
+//			txd.texList[i].convertFromPS2(0x40);
+//
+//		if (txd.texList[i].platform == rw::PLATFORM_XBOX)
+//			txd.texList[i].convertFromXbox();
+//
+//		if (txd.texList[i].dxtCompression)
+//			txd.texList[i].decompressDxt();
+//
+//		txd.texList[i].convertTo32Bit();
+//		txd.texList[i].writeTGA();
+//
+//		// create opengl texture
+//		GLuint texture_id;
+//		glGenTextures(1, &texture_id);
+//		glBindTexture(GL_TEXTURE_2D, texture_id);
+//
+//		// set the texture wrapping parameters
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//		// set texture filtering parameters
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//
+//		glTexImage2D(
+//			GL_TEXTURE_2D,
+//			0,
+//			GL_RGBA, // t.hasAlpha ? GL_RGBA : GL_RGB,
+//			t.width[0],
+//			t.height[0],
+//			0,
+//			GL_RGBA, // t.hasAlpha ? GL_RGBA : GL_RGB, 
+//			GL_UNSIGNED_BYTE,
+//			txd.texList[i].texels.front()
+//		);
+//		glGenerateMipmap(GL_TEXTURE_2D);
+//
+//		//cout << glGetError();
+//		assert(glGetError() == GL_NO_ERROR);
+//
+//		struct Texture _texture = { texture_id, t.name };
+//		cout << "Created texture. Name = " << t.name << ". Texture OpenGL ID = " << texture_id << endl;
+//		all_textures.push_back(_texture);
+//	}
+//}
+
+void loadTextureFromStream(std::istream &rw)
 {
-	ifstream rw(filename, ios::binary);
+	//ifstream rw(filename, ios::binary);
 	rw::TextureDictionary txd;
 	txd.read(rw);
-	rw.close();
+	//rw.close();
 
 	for (uint32 i = 0; i < txd.texList.size(); i++) {
 
@@ -181,17 +266,21 @@ void loadTexture(const char *filename)
 			<< " " << t.width[0] << " " << t.height[0] << " "
 			<< " " << t.depth << " " << hex << t.rasterFormat << endl;*/
 
-		if (txd.texList[i].platform == rw::PLATFORM_PS2)
+		/*if (txd.texList[i].platform == rw::PLATFORM_PS2)
 			txd.texList[i].convertFromPS2(0x40);
 
 		if (txd.texList[i].platform == rw::PLATFORM_XBOX)
-			txd.texList[i].convertFromXbox();
+			txd.texList[i].convertFromXbox();*/
 
 		if (txd.texList[i].dxtCompression)
 			txd.texList[i].decompressDxt();
 
 		txd.texList[i].convertTo32Bit();
 		txd.texList[i].writeTGA();
+
+		//if (t.width[0] % 2 == 0 || t.height[0] == 0) { // not square image
+		//	continue;
+		//}
 
 		// create opengl texture
 		GLuint texture_id;
@@ -218,47 +307,47 @@ void loadTexture(const char *filename)
 		);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		//cout << glGetError();
+		// cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
 
 		struct Texture _texture = { texture_id, t.name };
 		cout << "Created texture. Name = " << t.name << ". Texture OpenGL ID = " << texture_id << endl;
-		textures.push_back(_texture);
+		all_textures.push_back(_texture);
 	}
 }
 
 void cleanupTextures() {
-	for (uint32 i = 0; i < textures.size(); i++) {
-		glDeleteTextures(1, &textures[i].textureId);
+	for (uint32 i = 0; i < all_textures.size(); i++) {
+		glDeleteTextures(1, &all_textures[i].textureOpenGLId);
 	}
 }
-
-IMGArchive* newIMgArchive;
-
-void initImgFile(const char *filepath) {
-	newIMgArchive = new IMGArchive(filepath);
-}
-
-uchar* getImgFile(uint id) {
-	IMGArchiveFile* newFile = newIMgArchive->getFileByID(id);
-	if (newFile != NULL)
-	{
-		//Do some operations
-		cout << newFile->fileEntry->fileName << endl;
-		//Can get all bytes for the file and write it out into the separate file
-
-		return newFile->fileByteBuffer;
-	}
-
-	delete newFile;
-
-	return NULL;
-}
-
-void cleanupImgFile() {
-	
-	delete newIMgArchive;
-}
+//
+//IMGArchive* newIMgArchive;
+//
+//void initImgFile(const char *filepath) {
+//	newIMgArchive = new IMGArchive(filepath);
+//}
+//
+//uchar* getImgFile(uint id) {
+//	IMGArchiveFile* newFile = newIMgArchive->getFileByID(id);
+//	if (newFile != NULL)
+//	{
+//		//Do some operations
+//		cout << newFile->fileEntry->fileName << endl;
+//		//Can get all bytes for the file and write it out into the separate file
+//
+//		return newFile->fileByteBuffer;
+//	}
+//
+//	//delete newFile;
+//
+//	return NULL;
+//}
+//
+//void cleanupImgFile() {
+//	
+//	delete newIMgArchive;
+//}
 
 struct Objs {
 	unsigned int object_id;
@@ -338,9 +427,14 @@ int loadObjsFromFileIde(const char *filepath) {
 	fclose(file);
 }
 
+
 class Model {
 private:
 	std::vector<Mesh*> meshes;
+
+	std::vector<_Material> materials;
+
+	std::vector<rw::float32> vert;
 
 public:
 	void createModel(rw::Clump* clump)
@@ -348,12 +442,17 @@ public:
 		for (uint32 i = 0; i < clump->geometryList.size(); i++) {
 			rw::Geometry geometry = clump->geometryList[i];
 
-			Mesh* mesh = new Mesh();
+			
 
 			for (uint32 i = 0; i < geometry.materialList.size(); i++) {
 				if (geometry.materialList[i].hasTex) {
-					cout << "Model uses texture name = " << geometry.materialList[i].texture.name << endl;
-					mesh->textureName = geometry.materialList[i].texture.name;
+					cout << "Model uses material id: " << i << 
+						" with texture_name = " << geometry.materialList[i].texture.name << endl;
+
+					//mesh->textureName = geometry.materialList[i].texture.name;
+
+					struct _Material mat = { i, geometry.materialList[i].texture.name };
+					materials.push_back(mat);
 				}
 			}
 
@@ -362,39 +461,74 @@ public:
 				rw::float32 y = geometry.vertices[i * 3 + 1];
 				rw::float32 z = geometry.vertices[i * 3 + 2];
 
-				mesh->addVertex(x);
+				vert.push_back(x);
+				vert.push_back(y);
+				vert.push_back(z);
+
+				/*mesh->addVertex(x);
 				mesh->addVertex(y);
-				mesh->addVertex(z);
+				mesh->addVertex(z);*/
 
 				// normals
 				rw::float32 nx = geometry.vertices[i * 3 + 0];
 				rw::float32 ny = geometry.vertices[i * 3 + 1];
 				rw::float32 nz = geometry.vertices[i * 3 + 2];
 
+				vert.push_back(nx);
+				vert.push_back(ny);
+				vert.push_back(nz);
+
+				/*
 				mesh->addVertex(nx);
 				mesh->addVertex(ny);
 				mesh->addVertex(nz);
+				*/
 
 				// textures
 				rw::float32 u = geometry.texCoords[0][i * 2 + 0];
 				rw::float32 v = geometry.texCoords[0][i * 2 + 1];
 
+				vert.push_back(u);
+				vert.push_back(v);
+
+				/*
 				mesh->addVertex(u);
 				mesh->addVertex(v);
+				*/
 
-				// facetype - triangle strip or another
-				mesh->faceType = geometry.faceType;
+				
+				
 			}
 
 			for (uint32 i = 0; i < geometry.splits.size(); i++) {
+
+				Mesh* mesh = new Mesh();
+
+				// facetype - triangle strip or another
+				mesh->faceType = geometry.faceType;
+
+				mesh->vertices = vert;
+
+				rw::uint32 mat_ind = geometry.splits[i].matIndex;
+				mesh->textureName = materials[mat_ind].textureName;
+
 				for (uint32 j = 0; j < geometry.splits[i].indices.size(); j++) {
 					mesh->addIndices(geometry.splits[i].indices[j]);
+
+					//mesh->material_id = geometry.splits[i].matIndex;
+					std::cout << "indices uses texture = " << mesh->textureName << endl;
+
+					
+					
 				}
+
+				mesh->createMesh();
+				meshes.push_back(mesh);
+
+				
 			}
 
-			mesh->createMesh();
-
-			meshes.push_back(mesh);
+			
 		}
 	};
 
@@ -483,11 +617,29 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 #include <streambuf>
 #include <string>
 
+#include <sstream>
+#include <iomanip>
+#include <iostream>
+
+#include <cstdlib>
+#include <cstdio>
+#include <fstream>
+
+extern int readDFF(std::istream& in, rw::Clump* _clump);
+
+
 int main(void)
 {
-	loadObjsFromFileIde("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\generic.ide");
+	// loadObjsFromFileIde("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\generic.ide");
 
-	initImgFile("C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.img");
+	LoaderIMG* loaderImg = new LoaderIMG();
+	loaderImg->load("C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.dir",
+		"C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.img");
+
+
+	std::string assetNameInFileImg("miamiland180.dff");
+	std::string assetTextureFromArchive("lithablk12.txd");
+
 
 	if (!glfwInit()) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
@@ -531,21 +683,60 @@ int main(void)
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-
-
 	glm::mat4 mat_projection = glm::perspective(glm::radians(45.0f), SCREEN_W / SCREEN_H, 0.1f, 100.0f);
 
 	rw::Clump* clump = new rw::Clump;
 	
 
 	// char to ifstream
-	uchar *buffer = getImgFile(343); // barrel1
+	//uchar *buffer = getImgFile(343); // barrel1
 
 	// load dff from ifstream
 	//read_dff_from_istream(buffer, clump);
-	 readDFF("C:\\Files\\Projects\\openvice\\barrel1.dff", clump);
 
-	loadTexture("C:\\Files\\Projects\\openvice\\dynbarrels.txd");
+	//std::ifstream in("C:\\Files\\Projects\\openvice\\barrel1.dff", ios::binary);
+
+
+	auto tex_raw_data = loaderImg->loadToMemory(assetTextureFromArchive);
+	if (!tex_raw_data) {
+		return false;
+	}
+
+	LoaderIMGFile asset_tex;
+	if (!loaderImg->findAssetInfo(assetTextureFromArchive, asset_tex)) {
+		return false;
+	}
+
+	std::stringstream texStream;
+	constexpr size_t kAssetRecordSize{ 2048 };
+	texStream.write(tex_raw_data.get(), kAssetRecordSize * asset_tex.size);
+
+	loadTextureFromStream(texStream);
+
+
+
+
+
+	
+	// write to IN file info about model
+	auto raw_data = loaderImg->loadToMemory(assetNameInFileImg);
+	if (!raw_data) {
+		return false;
+	}
+
+	LoaderIMGFile asset;
+	if (!loaderImg->findAssetInfo(assetNameInFileImg, asset)) {
+		return false;
+	}
+
+	std::stringstream stream;
+	//constexpr size_t kAssetRecordSize{ 2048 };
+	stream.write(raw_data.get(), kAssetRecordSize * asset.size);
+
+
+	readDFF(stream, clump);
+
+	
 
 	Model *model = new Model();
 	model->createModel(clump);
@@ -570,6 +761,8 @@ int main(void)
 		assert(glGetError() == GL_NO_ERROR);
 
 		glm::mat4 mat_model = glm::mat4(1.0f);
+		//mat_model = glm::rotate(mat_model, 90.0f, glm::vec3(-1.0, 0, 0));
+
 		glm::mat4 mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		glm::mat4 MVP = mat_projection * mat_view * mat_model; // Remember, matrix multiplication is the other way around
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
@@ -603,7 +796,7 @@ int main(void)
 
 	assert(glGetError() == GL_NO_ERROR);
 
-	cleanupImgFile();
+	//cleanupImgFile();
 
 	glfwTerminate();
 

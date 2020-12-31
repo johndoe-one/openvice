@@ -256,7 +256,7 @@ dffRead(int argc, char *argv[])
 
 
 int
-readDFF(const char *filename, Clump *_clump)
+readDFF(std::istream &in, Clump *_clump)
 {
 	HeaderInfo header;
 	if (sizeof(uint32) != 4 || sizeof(int32) != 4 ||
@@ -324,7 +324,7 @@ readDFF(const char *filename, Clump *_clump)
 			usage();*/
 
 	//filename = "C:\\Users\\Misha\\Desktop\\pcj600.dff";
-	ifstream in(filename, ios::binary);
+	/*ifstream in(filename, ios::binary);*/
 	if (in.fail()) {
 		cerr << "cannot open " << endl;
 		return 1;
@@ -369,7 +369,7 @@ readDFF(const char *filename, Clump *_clump)
 			in.seekg(header.length);
 	}
 	//out.close();
-	in.close();
+	//in.close();
 
 	return 0;
 }
