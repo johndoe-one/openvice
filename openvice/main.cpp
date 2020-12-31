@@ -1,8 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+
 #include <vector>
 #include <fstream>
-#include <assert.h>
+#include <istream>
+#include <streambuf>
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <fstream>
 
 #include <GL/glew.h>
 
@@ -22,7 +32,6 @@ using namespace std;
 float SCREEN_W = 1920;
 float SCREEN_H = 1080;
 
-
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -39,9 +48,9 @@ float fov = 45.0f;
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
+extern int readDFF(std::istream& in, rw::Clump* _clump);
+
 Camera camera(cameraPos, cameraUp, yaw, pitch);
-
-
 std::vector<struct Texture> all_textures;
 
 struct Texture {
@@ -56,11 +65,8 @@ struct _Material {
 
 class Mesh {
 private:
-	unsigned int gVBO, gVAO, gEBO;
-	
+	unsigned int gVBO, gVAO, gEBO;	
 	std::vector<rw::uint32> indices;
-
-	
 
 public:
 	//uint32_t material_id;
@@ -329,33 +335,6 @@ void cleanupTextures() {
 		glDeleteTextures(1, &all_textures[i].textureOpenGLId);
 	}
 }
-//
-//IMGArchive* newIMgArchive;
-//
-//void initImgFile(const char *filepath) {
-//	newIMgArchive = new IMGArchive(filepath);
-//}
-//
-//uchar* getImgFile(uint id) {
-//	IMGArchiveFile* newFile = newIMgArchive->getFileByID(id);
-//	if (newFile != NULL)
-//	{
-//		//Do some operations
-//		cout << newFile->fileEntry->fileName << endl;
-//		//Can get all bytes for the file and write it out into the separate file
-//
-//		return newFile->fileByteBuffer;
-//	}
-//
-//	//delete newFile;
-//
-//	return NULL;
-//}
-//
-//void cleanupImgFile() {
-//	
-//	delete newIMgArchive;
-//}
 
 struct Objs {
 	unsigned int object_id;
@@ -435,13 +414,10 @@ int loadObjsFromFileIde(const char *filepath) {
 	fclose(file);
 }
 
-
 class Model {
 private:
 	std::vector<Mesh*> meshes;
-
 	std::vector<_Material> materials;
-
 	std::vector<rw::float32> vert;
 
 public:
@@ -465,6 +441,7 @@ public:
 			}
 
 			for (uint32 i = 0; i < geometry.vertices.size() / 3; i++) {
+				// vertices
 				rw::float32 x = geometry.vertices[i * 3 + 0];
 				rw::float32 y = geometry.vertices[i * 3 + 1];
 				rw::float32 z = geometry.vertices[i * 3 + 2];
@@ -478,10 +455,6 @@ public:
 				vert.push_back(y);
 				vert.push_back(z);
 
-				/*mesh->addVertex(x);
-				mesh->addVertex(y);
-				mesh->addVertex(z);*/
-
 				// normals
 				rw::float32 nx = geometry.vertices[i * 3 + 0];
 				rw::float32 ny = geometry.vertices[i * 3 + 1];
@@ -491,35 +464,18 @@ public:
 				vert.push_back(ny);
 				vert.push_back(nz);
 
-				/*
-				mesh->addVertex(nx);
-				mesh->addVertex(ny);
-				mesh->addVertex(nz);
-				*/
-
-				// textures
+				// texture coordinates
 				rw::float32 u = geometry.texCoords[0][i * 2 + 0];
 				rw::float32 v = geometry.texCoords[0][i * 2 + 1];
 
 				vert.push_back(1.0 - u); // fix Y is cameraUP
 				vert.push_back(v);
-
-				/*
-				mesh->addVertex(u);
-				mesh->addVertex(v);
-				*/
-
-				
-				
 			}
 
 			for (uint32 i = 0; i < geometry.splits.size(); i++) {
 
 				Mesh* mesh = new Mesh();
-
-				// facetype - triangle strip or another
-				mesh->faceType = geometry.faceType;
-
+				mesh->faceType = geometry.faceType; // facetype - triangle strip or another
 				mesh->vertices = vert;
 
 				rw::uint32 mat_ind = geometry.splits[i].matIndex;
@@ -530,18 +486,11 @@ public:
 
 					//mesh->material_id = geometry.splits[i].matIndex;
 					std::cout << "indices uses texture = " << mesh->textureName << endl;
-
-					
-					
 				}
 
 				mesh->createMesh();
 				meshes.push_back(mesh);
-
-				
 			}
-
-			
 		}
 	};
 
@@ -573,25 +522,8 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 
-	//const float cameraSpeed = 0.05f; // adjust accordingly
-
-	//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	//	cameraPos += cameraSpeed * cameraFront;
-
-	//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	//	cameraPos -= cameraSpeed * cameraFront;
-
-	//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	//	cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-
-	//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	//	cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-
-	//if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-	//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	//if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-	//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
@@ -614,43 +546,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	lastY = ypos;
 
 	camera.ProcessMouseMovement(xoffset, yoffset);
-
-	//float sensitivity = 0.1f; // change this value to your liking
-	//xoffset *= sensitivity;
-	//yoffset *= sensitivity;
-
-	//yaw += xoffset;
-	//pitch += yoffset;
-
-	//// make sure that when pitch is out of bounds, screen doesn't get flipped
-	//if (pitch > 89.0f)
-	//	pitch = 89.0f;
-	//if (pitch < -89.0f)
-	//	pitch = -89.0f;
-
-	//glm::vec3 front;
-	//front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	//front.y = sin(glm::radians(pitch));
-	//front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	//cameraFront = glm::normalize(front);
 }
-
-
-#include <iostream>
-#include <istream>
-#include <streambuf>
-#include <string>
-
-#include <sstream>
-#include <iomanip>
-#include <iostream>
-
-#include <cstdlib>
-#include <cstdio>
-#include <fstream>
-
-extern int readDFF(std::istream& in, rw::Clump* _clump);
-
 
 int main(void)
 {
@@ -711,16 +607,6 @@ int main(void)
 
 	rw::Clump* clump = new rw::Clump;
 	
-
-	// char to ifstream
-	//uchar *buffer = getImgFile(343); // barrel1
-
-	// load dff from ifstream
-	//read_dff_from_istream(buffer, clump);
-
-	//std::ifstream in("C:\\Files\\Projects\\openvice\\barrel1.dff", ios::binary);
-
-
 	auto tex_raw_data = loaderImg->loadToMemory(assetTextureFromArchive);
 	if (!tex_raw_data) {
 		return false;
@@ -737,11 +623,6 @@ int main(void)
 
 	loadTextureFromStream(texStream);
 
-
-
-
-
-	
 	// write to IN file info about model
 	auto raw_data = loaderImg->loadToMemory(assetNameInFileImg);
 	if (!raw_data) {
@@ -754,19 +635,14 @@ int main(void)
 	}
 
 	std::stringstream stream;
-	//constexpr size_t kAssetRecordSize{ 2048 };
 	stream.write(raw_data.get(), kAssetRecordSize * asset.size);
-
 
 	readDFF(stream, clump);
 
-	
 
 	Model *model = new Model();
 	model->createModel(clump);
 	
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	//cout << glGetError();
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -775,13 +651,11 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 		// per-frame time logic
-        // --------------------
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
 		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
 		processInput(window);
@@ -791,13 +665,10 @@ int main(void)
 		assert(glGetError() == GL_NO_ERROR);
 
 		glm::mat4 mat_model = glm::mat4(1.0f);
-		//mat_model = glm::rotate(mat_model, 90.0f, glm::vec3(-1.0, 0, 0));
-
 		glm::mat4 mat_view = camera.GetViewMatrix();
-		//glm::mat4 mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		glm::mat4 MVP = mat_projection * mat_view * mat_model; // Remember, matrix multiplication is the other way around
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
 		// either set it manually like so:
 		glUniform1i(glGetUniformLocation(programID, "texture1"), 0);
@@ -824,10 +695,7 @@ int main(void)
 	glDeleteProgram(programID);
 
 	cleanupTextures();
-
 	assert(glGetError() == GL_NO_ERROR);
-
-	//cleanupImgFile();
 
 	glfwTerminate();
 
