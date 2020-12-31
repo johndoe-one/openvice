@@ -14,6 +14,7 @@
 #include <renderware.h>
 #include "shader.h"
 #include "IMGArchive.h"
+#include "Camera.h"
 
 using namespace glm;
 using namespace std;
@@ -33,6 +34,13 @@ float pitch = 0.0f;
 float lastX = SCREEN_W / 2.0;
 float lastY = SCREEN_H / 2.0;
 float fov = 45.0f;
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
+
+Camera camera(cameraPos, cameraUp, yaw, pitch);
+
 
 std::vector<struct Texture> all_textures;
 
@@ -461,6 +469,11 @@ public:
 				rw::float32 y = geometry.vertices[i * 3 + 1];
 				rw::float32 z = geometry.vertices[i * 3 + 2];
 
+				// fix Y is cameraUP
+				rw::float32 temp = y;
+				y = z;
+				z = temp;
+
 				vert.push_back(x);
 				vert.push_back(y);
 				vert.push_back(z);
@@ -488,7 +501,7 @@ public:
 				rw::float32 u = geometry.texCoords[0][i * 2 + 0];
 				rw::float32 v = geometry.texCoords[0][i * 2 + 1];
 
-				vert.push_back(u);
+				vert.push_back(1.0 - u); // fix Y is cameraUP
 				vert.push_back(v);
 
 				/*
@@ -551,25 +564,34 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	const float cameraSpeed = 0.05f; // adjust accordingly
-
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraSpeed * cameraFront;
-
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * cameraFront;
-
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-
+		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//const float cameraSpeed = 0.05f; // adjust accordingly
 
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	//	cameraPos += cameraSpeed * cameraFront;
+
+	//if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	//	cameraPos -= cameraSpeed * cameraFront;
+
+	//if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	//	cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+	//if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	//	cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+	//if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+	//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	//if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	//	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
@@ -591,24 +613,26 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	float sensitivity = 0.1f; // change this value to your liking
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
+	camera.ProcessMouseMovement(xoffset, yoffset);
 
-	yaw += xoffset;
-	pitch += yoffset;
+	//float sensitivity = 0.1f; // change this value to your liking
+	//xoffset *= sensitivity;
+	//yoffset *= sensitivity;
 
-	// make sure that when pitch is out of bounds, screen doesn't get flipped
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
+	//yaw += xoffset;
+	//pitch += yoffset;
 
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(front);
+	//// make sure that when pitch is out of bounds, screen doesn't get flipped
+	//if (pitch > 89.0f)
+	//	pitch = 89.0f;
+	//if (pitch < -89.0f)
+	//	pitch = -89.0f;
+
+	//glm::vec3 front;
+	//front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	//front.y = sin(glm::radians(pitch));
+	//front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	//cameraFront = glm::normalize(front);
 }
 
 
@@ -750,6 +774,12 @@ int main(void)
 	
 	while (!glfwWindowShouldClose(window))
 	{
+		// per-frame time logic
+        // --------------------
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
@@ -763,7 +793,8 @@ int main(void)
 		glm::mat4 mat_model = glm::mat4(1.0f);
 		//mat_model = glm::rotate(mat_model, 90.0f, glm::vec3(-1.0, 0, 0));
 
-		glm::mat4 mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		glm::mat4 mat_view = camera.GetViewMatrix();
+		//glm::mat4 mat_view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		glm::mat4 MVP = mat_projection * mat_view * mat_model; // Remember, matrix multiplication is the other way around
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 

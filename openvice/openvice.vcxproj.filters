@@ -80,5 +80,8 @@
     <ClInclude Include="IMGArchive.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Исходные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
