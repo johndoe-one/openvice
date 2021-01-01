@@ -290,7 +290,7 @@ void loadTextureFromStream(std::istream &rw)
 			txd.texList[i].decompressDxt();
 
 		txd.texList[i].convertTo32Bit();
-		txd.texList[i].writeTGA();
+		//txd.texList[i].writeTGA();
 
 		//if (t.width[0] % 2 == 0 || t.height[0] == 0) { // not square image
 		//	continue;
@@ -617,8 +617,9 @@ int main(void)
 		return false;
 	}
 
-	std::stringstream texStream;
 	constexpr size_t kAssetRecordSize{ 2048 };
+
+	std::stringstream texStream;
 	texStream.write(tex_raw_data.get(), kAssetRecordSize * asset_tex.size);
 
 	loadTextureFromStream(texStream);
