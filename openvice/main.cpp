@@ -48,7 +48,8 @@ float lastFrame = 0.0f;
 extern int readDFF(std::istream& in, rw::Clump* _clump);
 
 Camera camera(cameraPos, cameraUp, yaw, pitch);
-std::vector<struct Texture> all_textures;
+
+
 
 struct Texture {
 	unsigned int textureOpenGLId;
@@ -59,6 +60,8 @@ struct _Material {
 	int materialIndex;
 	std::string textureName;
 };
+
+std::vector<struct Texture> all_textures;
 
 class Mesh {
 private:
@@ -274,83 +277,6 @@ void cleanupTextures() {
 	}
 }
 
-struct Objs {
-	unsigned int object_id;
-	std::string object_name;
-	std::string object_txd_file;
-};
-
-std::vector<Objs> objects;
-
-int loadObjsFromFileIde(const char *filepath) {
-	char line[80];
-
-	FILE* file = fopen(filepath, "r");
-
-	if (!file) {
-		printf("Cannot open file %s.\n", filepath);
-		return 0;
-	}
-
-	int count_objs_items = 0;
-
-	bool is_objs_section = false;
-
-	while (!feof(file)) {
-		fgets(line, sizeof(line), file);
-
-		if (strcmp(line, "objs\n") == 0) { // equal
-			is_objs_section = true;
-			continue;
-		}
-
-		if (strcmp(line, "end\n") == 0) {
-			is_objs_section = false;
-			continue;
-		}
-		
-		if (is_objs_section) {
-			count_objs_items++;
-
-			unsigned int object_id;
-			std::string object_name;
-			std::string object_txd_file;
-
-			int index = 0;
-
-			char delim[] = ", ";
-			char* ptr = strtok(line, delim);
-
-			while (ptr != NULL) {
-				if (index == 0) {
-					object_id = std::stoul(std::string(ptr), nullptr, 0);;
-					printf("obj id = %d \n", object_id);
-				}
-
-				if (index == 1) {
-					object_name = ptr;
-					printf("obj name = %s \n", object_name.c_str());
-				}
-
-				if (index == 2) {
-					object_txd_file = ptr;
-					printf("obj txd name = %s \n", object_txd_file.c_str());
-				}
-
-				if (index == 2) {
-					struct Objs o = { object_id, object_name, object_txd_file };
-					objects.push_back(o);
-				}
-
-				ptr = strtok(NULL, delim);
-				index++;
-			}
-		}
-	}
-
-	fclose(file);
-}
-
 class Model {
 private:
 	std::vector<Mesh*> meshes;
@@ -363,11 +289,9 @@ public:
 		for (rw::uint32 i = 0; i < clump->geometryList.size(); i++) {
 			rw::Geometry geometry = clump->geometryList[i];
 
-			
-
 			for (rw::uint32 i = 0; i < geometry.materialList.size(); i++) {
 				if (geometry.materialList[i].hasTex) {
-					std::cout << "Model uses material id: " << i << 
+					std::cout << "Model uses material id: " << i <<
 						" with texture_name = " << geometry.materialList[i].texture.name << std::endl;
 
 					//mesh->textureName = geometry.materialList[i].texture.name;
@@ -376,6 +300,25 @@ public:
 					materials.push_back(mat);
 				}
 			}
+		}
+
+
+		for (rw::uint32 i = 0; i < clump->geometryList.size(); i++) {
+			rw::Geometry geometry = clump->geometryList[i];
+
+			
+
+			//for (rw::uint32 i = 0; i < geometry.materialList.size(); i++) {
+			//	if (geometry.materialList[i].hasTex) {
+			//		std::cout << "Model uses material id: " << i << 
+			//			" with texture_name = " << geometry.materialList[i].texture.name << std::endl;
+
+			//		//mesh->textureName = geometry.materialList[i].texture.name;
+
+			//		struct _Material mat = { i, geometry.materialList[i].texture.name };
+			//		materials.push_back(mat);
+			//	}
+			//}
 
 			for (rw::uint32 i = 0; i < geometry.vertices.size() / 3; i++) {
 				// vertices
@@ -416,7 +359,10 @@ public:
 				mesh->vertices = vert;
 
 				rw::uint32 mat_ind = geometry.splits[i].matIndex;
-				mesh->textureName = materials[mat_ind].textureName;
+				
+				if (mat_ind < materials.size()) { // check Array index out of bounds
+					mesh->textureName = materials[mat_ind].textureName;
+				}
 
 				for (rw::uint32 j = 0; j < geometry.splits[i].indices.size(); j++) {
 					mesh->addIndices(geometry.splits[i].indices[j]);
@@ -488,18 +434,269 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
+
+LoaderIMG* loaderImg = new LoaderIMG();
+
+
+
+class RenderModel {
+public:
+	rw::Clump* clump;
+	Model* model;
+
+	int model_id;
+
+	bool initModel(int _model_id, const char *dff_name, const char *txd_name) 
+	{
+		model_id = _model_id;
+
+		std::string assetNameInFileImg(dff_name);
+		assetNameInFileImg += ".dff";
+
+		std::string assetTextureFromArchive(txd_name);
+		assetTextureFromArchive += ".txd";
+
+		auto tex_raw_data = loaderImg->loadToMemory(assetTextureFromArchive);
+		if (!tex_raw_data) {
+			return false;
+		}
+
+		LoaderIMGFile asset_tex;
+		if (!loaderImg->findAssetInfo(assetTextureFromArchive, asset_tex)) {
+			return false;
+		}
+
+		constexpr size_t kAssetRecordSize{ 2048 };
+
+		std::stringstream texStream;
+		texStream.write(tex_raw_data.get(), kAssetRecordSize * asset_tex.size);
+
+		loadTextureFromStream(texStream);
+
+		// write to IN file info about model
+		auto raw_data = loaderImg->loadToMemory(assetNameInFileImg);
+		if (!raw_data) {
+			return false;
+		}
+
+		LoaderIMGFile asset;
+		if (!loaderImg->findAssetInfo(assetNameInFileImg, asset)) {
+			return false;
+		}
+
+		std::stringstream stream;
+		stream.write(raw_data.get(), kAssetRecordSize * asset.size);
+
+		//
+		clump = new rw::Clump();
+		readDFF(stream, clump);
+
+		model = new Model();
+		model->createModel(clump);
+
+		return true;
+	}
+
+	void draw() {
+		model->drawModel();
+	}
+
+	void cleanup() {
+		model->cleanupModel();
+		clump->clear();
+
+		delete model;
+		delete clump;
+	}
+};
+
+std::vector<RenderModel*> all_models;
+
+//struct IdeFile {
+//	int object_id;
+//	std::string dff_name; // wo extension
+//	std::string txd_name; // wo extension
+//};
+
+int loadObjsFromFileIde(const char* filepath) {
+	char line[128];
+
+	FILE* file = fopen(filepath, "r");
+
+	if (!file) {
+		printf("Cannot open file %s.\n", filepath);
+		return 0;
+	}
+
+	int count_objs_items = 0;
+
+	bool is_objs_section = false;
+
+	while (!feof(file)) {
+		fgets(line, sizeof(line), file);
+
+		if (strcmp(line, "objs\n") == 0) { // equal
+			is_objs_section = true;
+			continue;
+		}
+
+		if (strcmp(line, "end\n") == 0) {
+			is_objs_section = false;
+			continue;
+		}
+
+		if (is_objs_section) {
+			count_objs_items++;
+
+			unsigned int object_id;
+			std::string object_name;
+			std::string object_txd_file;
+
+			int index = 0;
+
+			char delim[] = ", ";
+			char* ptr = strtok(line, delim);
+
+			while (ptr != NULL) {
+				if (index == 0) {
+					object_id = std::stoul(std::string(ptr), nullptr, 0);;
+					printf("obj id = %d \n", object_id);
+				}
+
+				if (index == 1) {
+					object_name = ptr;
+					printf("obj name = %s \n", object_name.c_str());
+				}
+
+				if (index == 2) {
+					object_txd_file = ptr;
+					printf("obj txd name = %s \n", object_txd_file.c_str());
+				}
+
+				if (index == 2) {
+					// load to all_models
+					RenderModel* rm = new RenderModel();
+
+					bool success_loaded_model = rm->initModel(object_id, object_name.c_str(), object_txd_file.c_str());
+
+					if (success_loaded_model) {
+						all_models.push_back(rm);
+					}
+				}
+
+				ptr = strtok(NULL, delim);
+				index++;
+			}
+		}
+	}
+
+	fclose(file);
+}
+
+struct IplFile {
+	int obj_id;
+	float x;
+	float y;
+	float z;
+};
+
+std::vector<IplFile> world_object;
+
+// placement objects
+int loadObjsFromFileIpl(const char* filepath) {
+	char line[256];
+
+	FILE* file = fopen(filepath, "r");
+
+	if (!file) {
+		printf("Cannot open file %s.\n", filepath);
+		return 0;
+	}
+
+	int count_objs_items = 0;
+
+	bool is_objs_section = false;
+
+	while (!feof(file)) {
+		fgets(line, sizeof(line), file);
+
+		if (strcmp(line, "inst\n") == 0) { // equal
+			is_objs_section = true;
+			continue;
+		}
+
+		if (strcmp(line, "end\n") == 0) {
+			is_objs_section = false;
+			continue;
+		}
+
+		if (is_objs_section) {
+			count_objs_items++;
+
+			unsigned int object_id;
+			std::string object_name;
+			float x,y,z;
+
+			int index = 0;
+
+			char delim[] = ", ";
+			char* ptr = strtok(line, delim);
+
+			while (ptr != NULL) {
+				if (index == 0) {
+					object_id = std::stoul(std::string(ptr), nullptr, 0);;
+					printf("IPL obj id = %d \n", object_id);
+				}
+
+				if (index == 1) {
+					object_name = ptr;
+					printf("IPL obj name = %s \n", object_name.c_str());
+				}
+
+				if (index == 3) { // x
+					x = atof(ptr);
+					printf("IPL obj X = %f \n", x);
+				}
+
+				if (index == 4) { // y
+					y = atof(ptr);
+					printf("IPL obj Y = %f \n", y);
+				}
+
+				if (index == 5) { // z
+					z = atof(ptr);
+					printf("IPL obj Z = %f \n", z);
+
+					// fix Y is UP
+					float temp = y;
+					y = z;
+					z = temp;
+
+					struct IplFile wo = { object_id, x,y,z };
+					world_object.push_back(wo);
+				}
+
+				ptr = strtok(NULL, delim);
+				index++;
+			}
+		}
+	}
+
+	fclose(file);
+}
+
+void cleanupRenderModels() {
+	for (rw::uint32 i = 0; i < all_models.size(); i++) {
+		all_models[i]->cleanup();
+	}
+}
+
 int main(void)
 {
-	// loadObjsFromFileIde("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\generic.ide");
+	loadObjsFromFileIpl("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ipl");
 
-	LoaderIMG* loaderImg = new LoaderIMG();
 	loaderImg->load("C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.dir",
 		"C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.img");
-
-
-	std::string assetNameInFileImg("miamiland180.dff");
-	std::string assetTextureFromArchive("lithablk12.txd");
-
 
 	if (!glfwInit()) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
@@ -543,48 +740,18 @@ int main(void)
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-	glm::mat4 mat_projection = glm::perspective(glm::radians(45.0f), SCREEN_W / SCREEN_H, 0.1f, 100.0f);
+	glm::mat4 mat_projection = glm::perspective(glm::radians(45.0f), SCREEN_W / SCREEN_H, 0.1f, 999999.0f);
 
-	rw::Clump* clump = new rw::Clump;
-	
-	auto tex_raw_data = loaderImg->loadToMemory(assetTextureFromArchive);
-	if (!tex_raw_data) {
-		return false;
-	}
+	/*RenderModel* render_model = new RenderModel();
+	render_model->initModel(-1, "miamiland180.dff", "lithablk12.txd");
 
-	LoaderIMGFile asset_tex;
-	if (!loaderImg->findAssetInfo(assetTextureFromArchive, asset_tex)) {
-		return false;
-	}
+	all_models.push_back(render_model);*/
 
-	constexpr size_t kAssetRecordSize{ 2048 };
-
-	std::stringstream texStream;
-	texStream.write(tex_raw_data.get(), kAssetRecordSize * asset_tex.size);
-
-	loadTextureFromStream(texStream);
-
-	// write to IN file info about model
-	auto raw_data = loaderImg->loadToMemory(assetNameInFileImg);
-	if (!raw_data) {
-		return false;
-	}
-
-	LoaderIMGFile asset;
-	if (!loaderImg->findAssetInfo(assetNameInFileImg, asset)) {
-		return false;
-	}
-
-	std::stringstream stream;
-	stream.write(raw_data.get(), kAssetRecordSize * asset.size);
-
-	readDFF(stream, clump);
-
-
-	Model *model = new Model();
-	model->createModel(clump);
-	
 	//cout << glGetError();
+
+	loadObjsFromFileIde("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ide");
+
+
 	assert(glGetError() == GL_NO_ERROR);
 
 	glEnable(GL_DEPTH_TEST);
@@ -605,20 +772,40 @@ int main(void)
 
 		assert(glGetError() == GL_NO_ERROR);
 
-		glm::mat4 mat_model = glm::mat4(1.0f);
-		glm::mat4 mat_view = camera.GetViewMatrix();
-		glm::mat4 MVP = mat_projection * mat_view * mat_model; // Remember, matrix multiplication is the other way around
-
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
-		// either set it manually like so:
-		glUniform1i(glGetUniformLocation(programID, "texture1"), 0);
+		
 
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
 
-		//drawModel(clump);
-		model->drawModel();
+		// draw all models
+		for (size_t i = 0; i < world_object.size(); i++) {
+			struct IplFile wo = world_object[i];
+
+			for (size_t j = 0; j < all_models.size(); j++) {
+				if (wo.obj_id == all_models[j]->model_id) {
+
+					glm::mat4 mat_model = glm::mat4(1.0f);
+					mat_model = glm::translate(mat_model, glm::vec3(wo.x, wo.y, wo.z));
+
+					glm::mat4 mat_view = camera.GetViewMatrix();
+					glm::mat4 MVP = mat_projection * mat_view * mat_model; // Remember, matrix multiplication is the other way around
+
+					glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+					// either set it manually like so:
+					glUniform1i(glGetUniformLocation(programID, "texture1"), 0);
+
+					all_models[j]->draw();
+				}
+			}
+
+			//all_models[i]->draw();
+		}
+		
+
+		/*for (size_t i = 0; i < all_models.size(); i++) {
+			all_models[i]->draw();
+		}*/
 
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
@@ -628,15 +815,14 @@ int main(void)
 		glfwPollEvents();
 	}
 
-	model->cleanupModel();
-	delete model;
-
-	delete clump;
+	cleanupRenderModels();
 	
 	glDeleteProgram(programID);
 
 	cleanupTextures();
 	assert(glGetError() == GL_NO_ERROR);
+	
+	// TODO cleanup loaderImg
 
 	glfwTerminate();
 
