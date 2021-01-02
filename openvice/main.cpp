@@ -49,8 +49,6 @@ extern int readDFF(std::istream& in, rw::Clump* _clump);
 
 Camera camera(cameraPos, cameraUp, yaw, pitch);
 
-
-
 struct Texture {
 	unsigned int textureOpenGLId;
 	std::string textureName;
@@ -437,8 +435,6 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 
 LoaderIMG* loaderImg = new LoaderIMG();
 
-
-
 class RenderModel {
 public:
 	rw::Clump* clump;
@@ -512,13 +508,15 @@ public:
 
 std::vector<RenderModel*> all_models;
 
-//struct IdeFile {
-//	int object_id;
-//	std::string dff_name; // wo extension
-//	std::string txd_name; // wo extension
-//};
+struct ide_file_object {
+	int object_id;
+	std::string dff_name; // wo extension
+	std::string txd_name; // wo extension
+};
 
-int loadObjsFromFileIde(const char* filepath) {
+std::vector<ide_file_object> ide_file_objects;
+
+int load_file_ide(const char* filepath) {
 	char line[128];
 
 	FILE* file = fopen(filepath, "r");
@@ -560,28 +558,24 @@ int loadObjsFromFileIde(const char* filepath) {
 			while (ptr != NULL) {
 				if (index == 0) {
 					object_id = std::stoul(std::string(ptr), nullptr, 0);;
-					printf("obj id = %d \n", object_id);
+					// printf("IDE file. Obj id = %d \n", object_id);
 				}
 
 				if (index == 1) {
 					object_name = ptr;
-					printf("obj name = %s \n", object_name.c_str());
+					// printf("IDE file. Obj name = %s \n", object_name.c_str());
 				}
 
 				if (index == 2) {
 					object_txd_file = ptr;
-					printf("obj txd name = %s \n", object_txd_file.c_str());
+					// printf("IDE file. Obj txd name = %s \n", object_txd_file.c_str());
 				}
 
 				if (index == 2) {
-					// load to all_models
-					RenderModel* rm = new RenderModel();
+					struct ide_file_object obj = { object_id, object_name, object_txd_file };
+					ide_file_objects.push_back(obj);
 
-					bool success_loaded_model = rm->initModel(object_id, object_name.c_str(), object_txd_file.c_str());
-
-					if (success_loaded_model) {
-						all_models.push_back(rm);
-					}
+					printf("IDE obj id = %d dff_name = %s txd_name = %s \n", object_id, object_name.c_str(), object_txd_file.c_str());
 				}
 
 				ptr = strtok(NULL, delim);
@@ -593,17 +587,35 @@ int loadObjsFromFileIde(const char* filepath) {
 	fclose(file);
 }
 
-struct IplFile {
+void load_resources() {
+
+	// load models
+	for (int i = 0; i < ide_file_objects.size(); i++) {
+		struct ide_file_object obj;
+		obj = ide_file_objects[i];
+
+		// load to all_models
+		RenderModel* rm = new RenderModel();
+
+		bool success_loaded_model = rm->initModel(obj.object_id, obj.dff_name.c_str(), obj.txd_name.c_str());
+
+		if (success_loaded_model) {
+			all_models.push_back(rm);
+		}
+	}
+}
+
+struct ipl_file_object {
 	int obj_id;
 	float x;
 	float y;
 	float z;
 };
 
-std::vector<IplFile> world_object;
+std::vector<ipl_file_object> ipl_file_objects;
 
 // placement objects
-int loadObjsFromFileIpl(const char* filepath) {
+int load_file_ipl(const char* filepath) {
 	char line[256];
 
 	FILE* file = fopen(filepath, "r");
@@ -644,36 +656,37 @@ int loadObjsFromFileIpl(const char* filepath) {
 
 			while (ptr != NULL) {
 				if (index == 0) {
-					object_id = std::stoul(std::string(ptr), nullptr, 0);;
-					printf("IPL obj id = %d \n", object_id);
+					object_id = std::stoul(std::string(ptr), nullptr, 0);
+					//printf("IPL obj id = %d \n", object_id);
 				}
 
 				if (index == 1) {
 					object_name = ptr;
-					printf("IPL obj name = %s \n", object_name.c_str());
+					//printf("IPL obj name = %s \n", object_name.c_str());
 				}
 
 				if (index == 3) { // x
 					x = atof(ptr);
-					printf("IPL obj X = %f \n", x);
+					//printf("IPL obj X = %f \n", x);
 				}
 
 				if (index == 4) { // y
 					y = atof(ptr);
-					printf("IPL obj Y = %f \n", y);
+					//printf("IPL obj Y = %f \n", y);
 				}
 
 				if (index == 5) { // z
 					z = atof(ptr);
-					printf("IPL obj Z = %f \n", z);
+
+					printf("IPL obj id = %d x = %f y = %f z = %f \n", object_id, x, y, z);
 
 					// fix Y is UP
 					float temp = y;
 					y = z;
 					z = temp;
 
-					struct IplFile wo = { object_id, x,y,z };
-					world_object.push_back(wo);
+					struct ipl_file_object obj = { object_id, x,y,z };
+					ipl_file_objects.push_back(obj);
 				}
 
 				ptr = strtok(NULL, delim);
@@ -693,7 +706,8 @@ void cleanupRenderModels() {
 
 int main(void)
 {
-	loadObjsFromFileIpl("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ipl");
+	load_file_ipl("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ipl");
+	load_file_ide("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ide");
 
 	loaderImg->load("C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.dir",
 		"C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.img");
@@ -742,15 +756,8 @@ int main(void)
 
 	glm::mat4 mat_projection = glm::perspective(glm::radians(45.0f), SCREEN_W / SCREEN_H, 0.1f, 999999.0f);
 
-	/*RenderModel* render_model = new RenderModel();
-	render_model->initModel(-1, "miamiland180.dff", "lithablk12.txd");
 
-	all_models.push_back(render_model);*/
-
-	//cout << glGetError();
-
-	loadObjsFromFileIde("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ide");
-
+	load_resources();
 
 	assert(glGetError() == GL_NO_ERROR);
 
@@ -772,14 +779,12 @@ int main(void)
 
 		assert(glGetError() == GL_NO_ERROR);
 
-		
-
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
 
 		// draw all models
-		for (size_t i = 0; i < world_object.size(); i++) {
-			struct IplFile wo = world_object[i];
+		for (size_t i = 0; i < ipl_file_objects.size(); i++) {
+			struct ipl_file_object wo = ipl_file_objects[i];
 
 			for (size_t j = 0; j < all_models.size(); j++) {
 				if (wo.obj_id == all_models[j]->model_id) {
@@ -798,14 +803,7 @@ int main(void)
 					all_models[j]->draw();
 				}
 			}
-
-			//all_models[i]->draw();
 		}
-		
-
-		/*for (size_t i = 0; i < all_models.size(); i++) {
-			all_models[i]->draw();
-		}*/
 
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
