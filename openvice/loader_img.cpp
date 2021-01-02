@@ -15,7 +15,7 @@ namespace {
 
 }
 
-bool LoaderIMG::load(std::string filepathDIR, std::string filepathIMG) {
+int LoaderIMG::load(std::string filepathDIR, std::string filepathIMG) {
     assert(m_archive.empty());
     m_archive = filepathIMG;
 
@@ -24,8 +24,8 @@ bool LoaderIMG::load(std::string filepathDIR, std::string filepathIMG) {
 
     std::ifstream file(filepathDIR, std::ios::binary);
     if (!file.is_open()) {
-        //RW_ERROR("Failed to open " + dirPath.string());
-        return false;
+        printf("Failed to open %s.\n", filepathDIR.c_str());
+        return 0;
     }
 
     file.seekg(0, std::ios::end);
@@ -40,9 +40,8 @@ bool LoaderIMG::load(std::string filepathDIR, std::string filepathIMG) {
 
     if (file.fail() || file.gcount() != fileSize) {
         m_assets.resize(file.gcount() / sizeof(LoaderIMGFile));
-        //exit(-1);
-        //return -1;
-        //RW_ERROR("Error reading records in IMG archive");
+        printf("Error reading records in IMG archive %s.\n", filepathIMG.c_str());
+        return 0;
     }
 
     for (auto& asset : m_assets) {
@@ -54,10 +53,11 @@ bool LoaderIMG::load(std::string filepathDIR, std::string filepathIMG) {
 
     m_archive_stream.open(filepathIMG, std::ios::binary);
     if (!m_archive_stream.is_open()) {
-        //RW_ERROR("Failed to open " << imgPath.string());
+        printf("Failed to open %s.\n", filepathIMG.c_str());
+        return 0;
     }
 
-    return true;
+    return 1;
 }
 
 

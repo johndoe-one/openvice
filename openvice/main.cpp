@@ -50,7 +50,7 @@ extern int readDFF(std::istream& in, rw::Clump* _clump);
 Camera camera(cameraPos, cameraUp, yaw, pitch);
 
 struct Texture {
-	unsigned int textureOpenGLId;
+	unsigned int texture_opengl_id;
 	std::string textureName;
 };
 
@@ -157,11 +157,10 @@ public:
 		//		break;
 		//	}
 		//}
-		
 
 		for (rw::uint32 i = 0; i < all_textures.size(); i++) {
 			if (all_textures[i].textureName == textureName) {
-				unsigned int textureId = all_textures[i].textureOpenGLId;
+				unsigned int textureId = all_textures[i].texture_opengl_id;
 				glBindTexture(GL_TEXTURE_2D, textureId);
 				//cout << "draw texture name = " << textureName.c_str() << endl;
 				break;
@@ -204,17 +203,14 @@ public:
 	};
 };
 
-
-void loadTextureFromStream(std::istream &rw)
+void load_texture_from_stream(std::istream &rw)
 {
-	//ifstream rw(filename, ios::binary);
-	rw::TextureDictionary txd;
-	txd.read(rw);
-	//rw.close();
+	rw::TextureDictionary *txd = new rw::TextureDictionary();
+	txd->read(rw);
 
-	for (rw::uint32 i = 0; i < txd.texList.size(); i++) {
+	for (rw::uint32 i = 0; i < txd->texList.size(); i++) {
 
-		rw::NativeTexture& t = txd.texList[i];
+		rw::NativeTexture &t = txd->texList[i];
 		/*cout << i << " " << t.name << " " << t.maskName << " "
 			<< " " << t.width[0] << " " << t.height[0] << " "
 			<< " " << t.depth << " " << hex << t.rasterFormat << endl;*/
@@ -225,15 +221,11 @@ void loadTextureFromStream(std::istream &rw)
 		if (txd.texList[i].platform == rw::PLATFORM_XBOX)
 			txd.texList[i].convertFromXbox();*/
 
-		if (txd.texList[i].dxtCompression)
-			txd.texList[i].decompressDxt();
+		if (txd->texList[i].dxtCompression)
+			txd->texList[i].decompressDxt();
 
-		txd.texList[i].convertTo32Bit();
+		//txd->texList[i].convertTo32Bit();
 		//txd.texList[i].writeTGA();
-
-		//if (t.width[0] % 2 == 0 || t.height[0] == 0) { // not square image
-		//	continue;
-		//}
 
 		// create opengl texture
 		GLuint texture_id;
@@ -241,7 +233,7 @@ void loadTextureFromStream(std::istream &rw)
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 
 		// set the texture wrapping parameters
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		// set texture filtering parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -256,7 +248,7 @@ void loadTextureFromStream(std::istream &rw)
 			0,
 			GL_RGBA, // t.hasAlpha ? GL_RGBA : GL_RGB, 
 			GL_UNSIGNED_BYTE,
-			txd.texList[i].texels.front()
+			txd->texList[i].texels.front()
 		);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -264,14 +256,18 @@ void loadTextureFromStream(std::istream &rw)
 		assert(glGetError() == GL_NO_ERROR);
 
 		struct Texture _texture = { texture_id, t.name };
-		std::cout << "Created texture. Name = " << t.name << ". Texture OpenGL ID = " << texture_id << std::endl;
 		all_textures.push_back(_texture);
+
+		printf("OpenGL: created texture id: %d name: %s.\n", texture_id, t.name.c_str());
 	}
+
+	txd->clear();
+	delete txd;
 }
 
 void cleanupTextures() {
 	for (rw::uint32 i = 0; i < all_textures.size(); i++) {
-		glDeleteTextures(1, &all_textures[i].textureOpenGLId);
+		glDeleteTextures(1, &all_textures[i].texture_opengl_id);
 	}
 }
 
@@ -299,7 +295,6 @@ public:
 				}
 			}
 		}
-
 
 		for (rw::uint32 i = 0; i < clump->geometryList.size(); i++) {
 			rw::Geometry geometry = clump->geometryList[i];
@@ -432,10 +427,9 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-
 LoaderIMG* loaderImg = new LoaderIMG();
 
-class RenderModel {
+class Object {
 public:
 	rw::Clump* clump;
 	Model* model;
@@ -467,7 +461,7 @@ public:
 		std::stringstream texStream;
 		texStream.write(tex_raw_data.get(), kAssetRecordSize * asset_tex.size);
 
-		loadTextureFromStream(texStream);
+		load_texture_from_stream(texStream);
 
 		// write to IN file info about model
 		auto raw_data = loaderImg->loadToMemory(assetNameInFileImg);
@@ -506,7 +500,7 @@ public:
 	}
 };
 
-std::vector<RenderModel*> all_models;
+std::vector<Object*> all_objects;
 
 struct ide_file_object {
 	int object_id;
@@ -585,6 +579,8 @@ int load_file_ide(const char* filepath) {
 	}
 
 	fclose(file);
+
+	return 1;
 }
 
 void load_resources() {
@@ -595,12 +591,12 @@ void load_resources() {
 		obj = ide_file_objects[i];
 
 		// load to all_models
-		RenderModel* rm = new RenderModel();
+		Object* rm = new Object();
 
 		bool success_loaded_model = rm->initModel(obj.object_id, obj.dff_name.c_str(), obj.txd_name.c_str());
 
 		if (success_loaded_model) {
-			all_models.push_back(rm);
+			all_objects.push_back(rm);
 		}
 	}
 }
@@ -616,7 +612,7 @@ std::vector<ipl_file_object> ipl_file_objects;
 
 // placement objects
 int load_file_ipl(const char* filepath) {
-	char line[256];
+	printf("Loading IPL file: %s.\n", filepath);
 
 	FILE* file = fopen(filepath, "r");
 
@@ -625,6 +621,7 @@ int load_file_ipl(const char* filepath) {
 		return 0;
 	}
 
+	char line[256];
 	int count_objs_items = 0;
 
 	bool is_objs_section = false;
@@ -696,21 +693,49 @@ int load_file_ipl(const char* filepath) {
 	}
 
 	fclose(file);
+
+	return 1;
 }
 
 void cleanupRenderModels() {
-	for (rw::uint32 i = 0; i < all_models.size(); i++) {
-		all_models[i]->cleanup();
+	for (rw::uint32 i = 0; i < all_objects.size(); i++) {
+		all_objects[i]->cleanup();
 	}
+}
+
+int load_file_img_and_dir(const char *filepath_img, const char *filepath_dir) {
+	int success = loaderImg->load(filepath_dir, filepath_img);
+
+	return success;
 }
 
 int main(void)
 {
-	load_file_ipl("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ipl");
-	load_file_ide("C:\\Games\\Grand Theft Auto Vice City\\data\\maps\\starisl\\starisl.ide");
+	std::string game_filepath = "C:\\Games\\Grand Theft Auto Vice City";
+	std::string ipl_filepath = game_filepath + "\\data\\maps\\starisl\\starisl.ipl";
+	std::string ide_filepath = game_filepath + "\\data\\maps\\starisl\\starisl.ide";
+	std::string dir_filepath = game_filepath + "\\models\\gta3.dir";
+	std::string img_filepath = game_filepath + "\\models\\gta3.img";
 
-	loaderImg->load("C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.dir",
-		"C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.img");
+	int success;
+		
+	success = load_file_ipl(ipl_filepath.c_str());
+	if (!success) {
+		printf("Cannot load IPL file %s", ipl_filepath.c_str());
+		return -1;
+	}
+
+	success = load_file_ide(ide_filepath.c_str());
+	if (!success) {
+		printf("Cannot load IPL file %s", ipl_filepath.c_str());
+		return -1;
+	}
+
+	success = load_file_img_and_dir(img_filepath.c_str(), dir_filepath.c_str());
+	if (!success) {
+		printf("Cannot load IPL file %s", ipl_filepath.c_str());
+		return -1;
+	}
 
 	if (!glfwInit()) {
 		fprintf(stderr, "Failed to initialize GLFW\n");
@@ -786,8 +811,8 @@ int main(void)
 		for (size_t i = 0; i < ipl_file_objects.size(); i++) {
 			struct ipl_file_object wo = ipl_file_objects[i];
 
-			for (size_t j = 0; j < all_models.size(); j++) {
-				if (wo.obj_id == all_models[j]->model_id) {
+			for (size_t j = 0; j < all_objects.size(); j++) {
+				if (wo.obj_id == all_objects[j]->model_id) {
 
 					glm::mat4 mat_model = glm::mat4(1.0f);
 					mat_model = glm::translate(mat_model, glm::vec3(wo.x, wo.y, wo.z));
@@ -800,7 +825,7 @@ int main(void)
 					// either set it manually like so:
 					glUniform1i(glGetUniformLocation(programID, "texture1"), 0);
 
-					all_models[j]->draw();
+					all_objects[j]->draw();
 				}
 			}
 		}

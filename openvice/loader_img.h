@@ -45,7 +45,7 @@ public:
     /// Load the structure of the archive
     /// Omit the extension in filename so both .dir and .img are loaded when
     /// appropriate
-    bool load(std::string filepathDIR, std::string filepathIMG);
+    int load(std::string filepathDIR, std::string filepathIMG);
 
     /// Load a file from the archive to memory and pass a pointer to it
     /// Warning: Returns nullptr if by any reason it can't load the file
