@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SHADER_H_
+#define _SHADER_H_
 
 #include <stdio.h>
 #include <string>
@@ -7,10 +8,11 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
-
 #include <stdlib.h>
 #include <string.h>
 
 #include <GL/glew.h>
 
 GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path);
+
+#endif _SHADER_H_

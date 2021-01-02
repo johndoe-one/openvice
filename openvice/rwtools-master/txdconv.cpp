@@ -1,7 +1,8 @@
 #include <cstdlib>
 #include <fstream>
-#include <renderware.h>
+
 #include "args.h"
+#include "./renderware.h"
 
 using namespace std;
 using namespace rw;

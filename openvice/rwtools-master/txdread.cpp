@@ -1,7 +1,8 @@
 #include <cstring>
 #include <cstdlib>
 #include <fstream>
-#include <renderware.h>
+
+#include "./renderware.h"
 
 using namespace std;
 

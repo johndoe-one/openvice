@@ -1,11 +1,4 @@
-#include "IMGarchive.h"
-
-#include <cassert>
-#include <cctype>
-#include <cstring>
-#include <algorithm>
-
-//#include <rw/debug.hpp>
+#include "loader_img.h"
 
 namespace {
 
@@ -21,8 +14,6 @@ namespace {
     } // namespace
 
 }
-
-#include <iostream>
 
 bool LoaderIMG::load(std::string filepathDIR, std::string filepathIMG) {
     assert(m_archive.empty());

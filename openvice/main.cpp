@@ -21,13 +21,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <renderware.h>
+#include "rwtools-master/renderware.h"
 #include "shader.h"
-#include "IMGArchive.h"
-#include "Camera.h"
-
-using namespace glm;
-using namespace std;
+#include "loader_img.h"
+#include "camera.h"
 
 float SCREEN_W = 1920;
 float SCREEN_H = 1080;
@@ -70,11 +67,11 @@ private:
 
 public:
 	//uint32_t material_id;
-	std::vector<float32> vertices;
-	std::vector<float32> texCoords;
+	std::vector<rw::float32> vertices;
+	std::vector<rw::float32> texCoords;
 
 	std::string textureName;
-	uint32 faceType;
+	rw::uint32 faceType;
 
 	void addVertex(rw::float32 vertex)
 	{
@@ -161,7 +158,7 @@ public:
 		//}
 		
 
-		for (uint32 i = 0; i < all_textures.size(); i++) {
+		for (rw::uint32 i = 0; i < all_textures.size(); i++) {
 			if (all_textures[i].textureName == textureName) {
 				unsigned int textureId = all_textures[i].textureOpenGLId;
 				glBindTexture(GL_TEXTURE_2D, textureId);
@@ -206,65 +203,6 @@ public:
 	};
 };
 
-//void loadTexture(const char *filename)
-//{
-//	ifstream rw(filename, ios::binary);
-//	rw::TextureDictionary txd;
-//	txd.read(rw);
-//	rw.close();
-//
-//	for (uint32 i = 0; i < txd.texList.size(); i++) {
-//
-//		rw::NativeTexture& t = txd.texList[i];
-//		/*cout << i << " " << t.name << " " << t.maskName << " "
-//			<< " " << t.width[0] << " " << t.height[0] << " "
-//			<< " " << t.depth << " " << hex << t.rasterFormat << endl;*/
-//
-//		if (txd.texList[i].platform == rw::PLATFORM_PS2)
-//			txd.texList[i].convertFromPS2(0x40);
-//
-//		if (txd.texList[i].platform == rw::PLATFORM_XBOX)
-//			txd.texList[i].convertFromXbox();
-//
-//		if (txd.texList[i].dxtCompression)
-//			txd.texList[i].decompressDxt();
-//
-//		txd.texList[i].convertTo32Bit();
-//		txd.texList[i].writeTGA();
-//
-//		// create opengl texture
-//		GLuint texture_id;
-//		glGenTextures(1, &texture_id);
-//		glBindTexture(GL_TEXTURE_2D, texture_id);
-//
-//		// set the texture wrapping parameters
-//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//		// set texture filtering parameters
-//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//
-//		glTexImage2D(
-//			GL_TEXTURE_2D,
-//			0,
-//			GL_RGBA, // t.hasAlpha ? GL_RGBA : GL_RGB,
-//			t.width[0],
-//			t.height[0],
-//			0,
-//			GL_RGBA, // t.hasAlpha ? GL_RGBA : GL_RGB, 
-//			GL_UNSIGNED_BYTE,
-//			txd.texList[i].texels.front()
-//		);
-//		glGenerateMipmap(GL_TEXTURE_2D);
-//
-//		//cout << glGetError();
-//		assert(glGetError() == GL_NO_ERROR);
-//
-//		struct Texture _texture = { texture_id, t.name };
-//		cout << "Created texture. Name = " << t.name << ". Texture OpenGL ID = " << texture_id << endl;
-//		all_textures.push_back(_texture);
-//	}
-//}
 
 void loadTextureFromStream(std::istream &rw)
 {
@@ -273,7 +211,7 @@ void loadTextureFromStream(std::istream &rw)
 	txd.read(rw);
 	//rw.close();
 
-	for (uint32 i = 0; i < txd.texList.size(); i++) {
+	for (rw::uint32 i = 0; i < txd.texList.size(); i++) {
 
 		rw::NativeTexture& t = txd.texList[i];
 		/*cout << i << " " << t.name << " " << t.maskName << " "
@@ -325,13 +263,13 @@ void loadTextureFromStream(std::istream &rw)
 		assert(glGetError() == GL_NO_ERROR);
 
 		struct Texture _texture = { texture_id, t.name };
-		cout << "Created texture. Name = " << t.name << ". Texture OpenGL ID = " << texture_id << endl;
+		std::cout << "Created texture. Name = " << t.name << ". Texture OpenGL ID = " << texture_id << std::endl;
 		all_textures.push_back(_texture);
 	}
 }
 
 void cleanupTextures() {
-	for (uint32 i = 0; i < all_textures.size(); i++) {
+	for (rw::uint32 i = 0; i < all_textures.size(); i++) {
 		glDeleteTextures(1, &all_textures[i].textureOpenGLId);
 	}
 }
@@ -347,7 +285,6 @@ std::vector<Objs> objects;
 int loadObjsFromFileIde(const char *filepath) {
 	char line[80];
 
-	/* Open file */
 	FILE* file = fopen(filepath, "r");
 
 	if (!file) {
@@ -423,15 +360,15 @@ private:
 public:
 	void createModel(rw::Clump* clump)
 	{
-		for (uint32 i = 0; i < clump->geometryList.size(); i++) {
+		for (rw::uint32 i = 0; i < clump->geometryList.size(); i++) {
 			rw::Geometry geometry = clump->geometryList[i];
 
 			
 
-			for (uint32 i = 0; i < geometry.materialList.size(); i++) {
+			for (rw::uint32 i = 0; i < geometry.materialList.size(); i++) {
 				if (geometry.materialList[i].hasTex) {
-					cout << "Model uses material id: " << i << 
-						" with texture_name = " << geometry.materialList[i].texture.name << endl;
+					std::cout << "Model uses material id: " << i << 
+						" with texture_name = " << geometry.materialList[i].texture.name << std::endl;
 
 					//mesh->textureName = geometry.materialList[i].texture.name;
 
@@ -440,7 +377,7 @@ public:
 				}
 			}
 
-			for (uint32 i = 0; i < geometry.vertices.size() / 3; i++) {
+			for (rw::uint32 i = 0; i < geometry.vertices.size() / 3; i++) {
 				// vertices
 				rw::float32 x = geometry.vertices[i * 3 + 0];
 				rw::float32 y = geometry.vertices[i * 3 + 1];
@@ -472,7 +409,7 @@ public:
 				vert.push_back(v);
 			}
 
-			for (uint32 i = 0; i < geometry.splits.size(); i++) {
+			for (rw::uint32 i = 0; i < geometry.splits.size(); i++) {
 
 				Mesh* mesh = new Mesh();
 				mesh->faceType = geometry.faceType; // facetype - triangle strip or another
@@ -481,11 +418,11 @@ public:
 				rw::uint32 mat_ind = geometry.splits[i].matIndex;
 				mesh->textureName = materials[mat_ind].textureName;
 
-				for (uint32 j = 0; j < geometry.splits[i].indices.size(); j++) {
+				for (rw::uint32 j = 0; j < geometry.splits[i].indices.size(); j++) {
 					mesh->addIndices(geometry.splits[i].indices[j]);
 
 					//mesh->material_id = geometry.splits[i].matIndex;
-					std::cout << "indices uses texture = " << mesh->textureName << endl;
+					std::cout << "indices uses texture = " << mesh->textureName << std::endl;
 				}
 
 				mesh->createMesh();
@@ -495,14 +432,14 @@ public:
 	};
 
 	void drawModel() {
-		for (uint32 i = 0; i < meshes.size(); i++) {
+		for (rw::uint32 i = 0; i < meshes.size(); i++) {
 			meshes[i]->drawMesh();
 		}
 	};
 
 	void cleanupModel()
 	{
-		for (uint32 i = 0; i < meshes.size(); i++) {
+		for (rw::uint32 i = 0; i < meshes.size(); i++) {
 			meshes[i]->cleanupMesh();
 		}
 	}
@@ -524,6 +461,9 @@ void processInput(GLFWwindow *window)
 
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)

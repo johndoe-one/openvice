@@ -63,7 +63,7 @@
     <ClCompile Include="rwtools-master\xboxnative.cpp">
       <Filter>Исходные файлы\rwtools</Filter>
     </ClCompile>
-    <ClCompile Include="IMGarchive.cpp">
+    <ClCompile Include="loader_img.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,10 +77,10 @@
     <ClInclude Include="rwtools-master\renderware.h">
       <Filter>Исходные файлы\rwtools</Filter>
     </ClInclude>
-    <ClInclude Include="IMGArchive.h">
+    <ClInclude Include="camera.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="loader_img.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
   </ItemGroup>

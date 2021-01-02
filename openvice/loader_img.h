@@ -6,6 +6,11 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <cassert>
+#include <cctype>
+#include <cstring>
+#include <algorithm>
+#include <iostream>
 
 //#include <rw/filesystem.hpp>
 
