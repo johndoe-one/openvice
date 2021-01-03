@@ -235,6 +235,7 @@ void load_texture_from_stream(std::istream &rw)
 		// set the texture wrapping parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 		// set texture filtering parameters
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -484,6 +485,11 @@ public:
 		model = new Model();
 		model->createModel(clump);
 
+		// dont need info obj
+		// because already created VAO, VBO...
+		clump->clear();
+		delete clump;
+
 		return true;
 	}
 
@@ -493,10 +499,7 @@ public:
 
 	void cleanup() {
 		model->cleanupModel();
-		clump->clear();
-
 		delete model;
-		delete clump;
 	}
 };
 
@@ -511,6 +514,8 @@ struct ide_file_object {
 std::vector<ide_file_object> ide_file_objects;
 
 int load_file_ide(const char* filepath) {
+	printf("Loading IDE file: %s.\n", filepath);
+
 	char line[128];
 
 	FILE* file = fopen(filepath, "r");
@@ -704,6 +709,9 @@ void cleanupRenderModels() {
 }
 
 int load_file_img_and_dir(const char *filepath_img, const char *filepath_dir) {
+	printf("Loading IMG file: %s.\n", filepath_img);
+	printf("Loading DIR file: %s.\n", filepath_dir);
+
 	int success = loaderImg->load(filepath_dir, filepath_img);
 
 	return success;
@@ -796,16 +804,16 @@ int main(void)
 		lastFrame = currentFrame;
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
 		processInput(window);
 
 		glUseProgram(programID);
 
-		assert(glGetError() == GL_NO_ERROR);
-
 		//cout << glGetError();
 		assert(glGetError() == GL_NO_ERROR);
+
+		glm::mat4 mat_view = camera.GetViewMatrix();
 
 		// draw all models
 		for (size_t i = 0; i < ipl_file_objects.size(); i++) {
@@ -817,7 +825,6 @@ int main(void)
 					glm::mat4 mat_model = glm::mat4(1.0f);
 					mat_model = glm::translate(mat_model, glm::vec3(wo.x, wo.y, wo.z));
 
-					glm::mat4 mat_view = camera.GetViewMatrix();
 					glm::mat4 MVP = mat_projection * mat_view * mat_model; // Remember, matrix multiplication is the other way around
 
 					glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
