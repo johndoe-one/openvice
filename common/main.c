@@ -9,7 +9,7 @@ int main() {
     dir_file_load(dir_filepath);
     img_file_load(img_filepath);
 
-    img_file_export_file(ASSET_FILE_INDEX);
+    img_file_export_asset(ASSET_FILE_INDEX);
 
     img_file_cleanup();
     dir_file_cleanup();
