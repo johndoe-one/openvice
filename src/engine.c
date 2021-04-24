@@ -2,19 +2,28 @@
 
 GLFWwindow* window;
 
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+}
+
 int window_init() {
     if (!glfwInit()) {
         printf("Cannot init GLFW library\n");
         return 0;
     }
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
     window = glfwCreateWindow(640, 480, "OpenVice", NULL, NULL);
     if (!window) {
         printf("Cannot create window in GLFW library\n");
-        glfwTerminate();
         return 0;
     }
 
+    glfwSetKeyCallback(window, key_callback);
     glfwMakeContextCurrent(window);
 
     glewExperimental = GL_TRUE;
@@ -40,5 +49,9 @@ void window_loop() {
 }
 
 void window_cleanup() {
+    if (window) {
+        glfwDestroyWindow(window);
+    }
+
     glfwTerminate();
 }
