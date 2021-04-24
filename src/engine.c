@@ -4,13 +4,15 @@ GLFWwindow* window;
 
 int window_init() {
     if (!glfwInit()) {
-        return -1;
+        printf("Cannot init GLFW library\n");
+        return 0;
     }
 
     window = glfwCreateWindow(640, 480, "OpenVice", NULL, NULL);
     if (!window) {
+        printf("Cannot create window in GLFW library\n");
         glfwTerminate();
-        return -1;
+        return 0;
     }
 
     glfwMakeContextCurrent(window);
@@ -19,11 +21,11 @@ int window_init() {
     GLenum err = glewInit();
 
     if (GLEW_OK != err) {
-        printf("Error: %s\n", glewGetErrorString(err));
-        return -1;
+        printf("GLFW library error: %s\n", glewGetErrorString(err));
+        return 0;
     }
 
-    return 0;
+    return 1;
 }
 
 void window_loop() {

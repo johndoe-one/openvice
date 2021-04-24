@@ -1,3 +1,7 @@
+/*
+ * Create window, OpengGL context, receive events, main loop
+ */
+
 #ifndef ENGINE_H
 #define ENGINE_H
 
