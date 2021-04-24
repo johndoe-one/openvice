@@ -5,8 +5,10 @@ OpenVice - open source engine for GTA Vice City. Supported OS: Windows, Linux, m
 * OpenGL 3.3
 
 ## Build
-* Compiler for Windows - [MinGW](https://code.visualstudio.com/docs/languages/cpp#_example-install-mingwx64);
-* Compiler for GNU/Linux - [GCC](https://gcc.gnu.org/);
+You can build project with GCC (MinGW for Windows) and Makefile.
+
+* [MinGW](https://code.visualstudio.com/docs/languages/cpp#_example-install-mingwx64) - Compiler for Windows;
+* [GCC](https://gcc.gnu.org/) - Compiler for GNU/Linux;
 * [Makefile](https://en.wikipedia.org/wiki/Makefile).
 
 ### Dependencies
