@@ -1,3 +1,4 @@
+#include "engine.h"
 #include "file_img.h"
 
 #define ASSET_FILE_INDEX 0
@@ -13,6 +14,10 @@ int main() {
 
     img_file_cleanup();
     dir_file_cleanup();
+
+    window_init();
+    window_loop();
+    window_cleanup();   
 
     return 0;
 }
