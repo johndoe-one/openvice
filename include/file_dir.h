@@ -18,7 +18,7 @@ struct dir_file_t {
 
 struct dir_file_t *dir_files;
 
-int dir_file_load(const char *filepath);
-void dir_file_cleanup();
+int file_dir_load(const char *filepath);
+void file_dir_cleanup();
 
 #endif

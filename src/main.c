@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "engine.h"
+#include "window.h"
 #include "file_dir.h"
 #include "file_img.h"
 
@@ -8,18 +8,18 @@ int main(int argc, char *argv[]) {
     const char *dir_filepath = "C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.dir";
     const char *img_filepath = "C:\\Games\\Grand Theft Auto Vice City\\models\\gta3.img";
 
-    dir_file_load(dir_filepath);
-    img_file_load(img_filepath);
+    file_dir_load(dir_filepath);
+    file_img_load(img_filepath);
 
-    img_file_export_asset(0);
+    file_img_export_asset(0);
 
     if (window_init()) {
         window_loop();
     }
     window_cleanup();
 
-    img_file_cleanup();
-    dir_file_cleanup();
+    file_img_cleanup();
+    file_dir_cleanup();
 
     return EXIT_SUCCESS;
 }

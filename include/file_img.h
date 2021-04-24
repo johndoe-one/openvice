@@ -12,8 +12,8 @@
 
 FILE *file_ptr_img;
 
-int img_file_load(const char *filepath);
-int img_file_export_asset(unsigned int file_index);
-void img_file_cleanup();
+int file_img_load(const char *filepath);
+int file_img_export_asset(unsigned int file_index);
+void file_img_cleanup();
 
 #endif

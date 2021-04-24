@@ -1,6 +1,6 @@
 #include "file_dir.h"
 
-int dir_file_load(const char *filepath) {
+int file_dir_load(const char *filepath) {
     FILE *fp = fopen(filepath, "r");
 
     if (fp == NULL) {
@@ -27,6 +27,6 @@ int dir_file_load(const char *filepath) {
     return 1;
 }
 
-void dir_file_cleanup() {
+void file_dir_cleanup() {
     free(dir_files);
 }

@@ -1,7 +1,7 @@
 #include "file_img.h"
 #include "file_dir.h"
 
-int img_file_load(const char *filepath) {
+int file_img_load(const char *filepath) {
     FILE *file_ptr_img;
     file_ptr_img = fopen(filepath, "rb");
 
@@ -16,7 +16,7 @@ int img_file_load(const char *filepath) {
     return 1;
 }
 
-void img_file_cleanup() {
+void file_img_cleanup() {
     fclose(file_ptr_img);
 }
 
@@ -26,7 +26,7 @@ size_t get_img_asset_size(uint16_t size_first_priority, uint16_t size_second_pri
 	return real_size;
 }
 
-int img_file_export_asset(unsigned int file_index) {
+int file_img_export_asset(unsigned int file_index) {
     size_t asset_size = get_img_asset_size(
         dir_files[file_index].size_first_priority,
         dir_files[file_index].size_second_priority
