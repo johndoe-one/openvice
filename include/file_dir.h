@@ -12,7 +12,7 @@
 struct dir_file_t {
     uint32_t position;
     uint16_t size_second_priority;
-	uint16_t size_first_priority;
+    uint16_t size_first_priority;
     char name[24];
 };
 

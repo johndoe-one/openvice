@@ -2,7 +2,6 @@
 #include "file_dir.h"
 
 int file_img_load(const char *filepath) {
-    FILE *file_ptr_img;
     file_ptr_img = fopen(filepath, "rb");
 
     if (file_ptr_img == NULL) {
