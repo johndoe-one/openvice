@@ -1,18 +1,27 @@
 #include "file_img.h"
 #include "file_dir.h"
 
+static FILE *file_ptr_img;
+extern struct dir_file_t *dir_files;
+
 int file_img_load(const char *filepath) {
     file_ptr_img = fopen(filepath, "rb");
 
     if (file_ptr_img == NULL) {
         printf("Cannot open file: %s\n", filepath);
 
-        return 0;
+        return 1;
+    }
+
+    if (dir_files == NULL) {
+        printf("Error: DIR file not loaded\n");
+
+        return 1;
     }
 
     printf("File IMG was successful loaded\n");
 
-    return 1;
+    return 0;
 }
 
 void file_img_cleanup() {
@@ -46,5 +55,5 @@ int file_img_export_asset(unsigned int file_index) {
 
     printf("File %s was saved successfully\n", dir_files[file_index].name);
 
-    return 1;
+    return 0;
 }

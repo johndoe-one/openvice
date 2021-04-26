@@ -11,7 +11,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 int window_init() {
     if (!glfwInit()) {
         printf("Cannot init GLFW library\n");
-        return 0;
+        return 1;
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -20,7 +20,7 @@ int window_init() {
     window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, NULL, NULL);
     if (!window) {
         printf("Cannot create window in GLFW library\n");
-        return 0;
+        return 1;
     }
 
     glfwSetKeyCallback(window, key_callback);
@@ -31,10 +31,10 @@ int window_init() {
 
     if (GLEW_OK != err) {
         printf("GLFW library error: %s\n", glewGetErrorString(err));
-        return 0;
+        return 1;
     }
 
-    return 1;
+    return 0;
 }
 
 void window_loop() {

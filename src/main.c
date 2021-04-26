@@ -13,7 +13,8 @@ int main(int argc, char *argv[]) {
 
     file_img_export_asset(0);
 
-    if (window_init()) {
+    int err = window_init();
+    if (!err) {
         window_loop();
     }
     window_cleanup();

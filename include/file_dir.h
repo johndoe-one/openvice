@@ -16,8 +16,6 @@ struct dir_file_t {
     char name[24];
 };
 
-struct dir_file_t *dir_files;
-
 int file_dir_load(const char *filepath);
 void file_dir_cleanup();
 

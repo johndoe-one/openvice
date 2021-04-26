@@ -10,8 +10,6 @@
 
 #define IMG_BLOCK_SIZE 2048 // 2 KB
 
-FILE *file_ptr_img;
-
 int file_img_load(const char *filepath);
 int file_img_export_asset(unsigned int file_index);
 void file_img_cleanup();

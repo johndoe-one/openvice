@@ -1,12 +1,14 @@
 #include "file_dir.h"
 
+struct dir_file_t *dir_files = NULL;
+
 int file_dir_load(const char *filepath) {
     FILE *fp = fopen(filepath, "r");
 
     if (fp == NULL) {
         printf("Cannot open file: %s\n", filepath);
 
-        return 0;
+        return 1;
     }
 
     // get file size
@@ -24,7 +26,7 @@ int file_dir_load(const char *filepath) {
 
     printf("File DIR was successful loaded\n");
 
-    return 1;
+    return 0;
 }
 
 void file_dir_cleanup() {
