@@ -10,9 +10,8 @@
 #include <stdint.h> // uint32_t
 
 struct dir_file_t {
-    uint32_t position;
-    uint16_t size_second_priority;
-    uint16_t size_first_priority;
+    uint32_t offset;
+    uint32_t size;
     char name[24];
 };
 
