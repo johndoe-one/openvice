@@ -1,1 +1,3 @@
-*.txd
+build/
+.vscode/
+
