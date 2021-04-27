@@ -1,5 +1,5 @@
 # OpenVice
-OpenVice - open source engine for GTA Vice City. Supported OS: Windows, Linux, macOS. Project uses C language for simple and clear development. Standard C language C89 and K&R with Linux Kernel code style.
+OpenVice - open source engine for GTA Vice City. Supported OS: Windows, Linux, macOS. Engine written on C language for simple and clear development (standard C language C89 with K&R / Linux Kernel code style). You will need an original copy of the Grand Theft Auto: Vice City to use this engine.
 
 ## System requirments 
 * OpenGL 3.3
@@ -17,3 +17,6 @@ You can build project with GCC (MinGW for Windows) and Makefile.
 
 ## License
 [GNU GPL 2](https://en.wikipedia.org/wiki/GNU_General_Public_License#Version_2)
+
+## Links
+* [Grand Theft Auto: Vice City](https://www.rockstargames.com/games/vicecity)
