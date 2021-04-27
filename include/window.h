@@ -9,7 +9,7 @@
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
-#include <stdio.h> // printf
+#include <stdio.h> /* printf */
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

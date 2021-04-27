@@ -13,4 +13,4 @@ LIB_GLFW = C:\Users\Misha\Downloads\glfw-3.3.4.bin.WIN64\lib-mingw-w64
 LIB_GLEW = C:\msys64\home\Misha\glew-2.1.0\lib
 
 all:
-	gcc -g -Wall ./src/main.c ./src/file_img.c ./src/file_dir.c ./src/window.c -I $(INCLUDE_APP) -I $(INCLUDE_GLFW) -I $(INCLUDE_GLEW) -L $(LIB_GLFW) -l glfw3dll -L $(LIB_GLEW) -l glew32.dll -l opengl32 -o ./build/openvice
+	gcc -std=c89 -g -Wall ./src/main.c ./src/file_img.c ./src/file_dir.c ./src/file_dff.c ./src/window.c -I $(INCLUDE_APP) -I $(INCLUDE_GLFW) -I $(INCLUDE_GLEW) -L $(LIB_GLFW) -l glfw3dll -L $(LIB_GLEW) -l glew32.dll -l opengl32 -o ./build/openvice

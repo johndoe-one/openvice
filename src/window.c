@@ -2,56 +2,67 @@
 
 static GLFWwindow* window;
 
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
+static void key_callback(GLFWwindow* window,
+        int key,
+        int scancode,
+        int action,
+        int mods)
+{
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+                glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
 }
 
-int window_init() {
-    if (!glfwInit()) {
-        printf("Cannot init GLFW library\n");
-        return 1;
-    }
+int window_init()
+{
+        GLenum err;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        if (!glfwInit()) {
+                printf("Cannot init GLFW library\n");
+                return 1;
+        }
 
-    window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, NULL, NULL);
-    if (!window) {
-        printf("Cannot create window in GLFW library\n");
-        return 1;
-    }
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-    glfwSetKeyCallback(window, key_callback);
-    glfwMakeContextCurrent(window);
+        window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, 
+                NULL, NULL);
 
-    glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
+        if (!window) {
+                printf("Cannot create window in GLFW library\n");
+                return 1;
+        }
 
-    if (GLEW_OK != err) {
-        printf("GLFW library error: %s\n", glewGetErrorString(err));
-        return 1;
-    }
+        glfwSetKeyCallback(window, key_callback);
+        glfwMakeContextCurrent(window);
 
-    return 0;
+        err = glewInit();
+
+        if (GLEW_OK != err) {
+                printf("GLFW library error: %s\n", glewGetErrorString(err));
+                return 1;
+        }
+
+        return 0;
 }
 
-void window_loop() {
-    while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+void window_loop()
+{
+        while (!glfwWindowShouldClose(window)) {
+                glClear(GL_COLOR_BUFFER_BIT);
+                glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
-        glfwSwapBuffers(window);
+                glfwSwapBuffers(window);
 
-        glfwPollEvents();
-    }
+                glfwPollEvents();
+        }
 }
 
-void window_cleanup() {
-    if (window) {
-        glfwDestroyWindow(window);
-    }
+void window_cleanup()
+{
+        if (window) {
+                glfwDestroyWindow(window);
+        }
 
-    glfwTerminate();
+        glfwTerminate();
 }
