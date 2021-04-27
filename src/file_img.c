@@ -1,20 +1,12 @@
 #include "file_img.h"
-#include "file_dir.h"
 
 static FILE *file_ptr_img;
-extern struct dir_file_t *dir_files;
 
 int file_img_load(const char *filepath) {
     file_ptr_img = fopen(filepath, "rb");
 
     if (file_ptr_img == NULL) {
         printf("Cannot open file: %s\n", filepath);
-
-        return 1;
-    }
-
-    if (dir_files == NULL) {
-        printf("Error: DIR file not loaded\n");
 
         return 1;
     }
@@ -28,7 +20,7 @@ void file_img_cleanup() {
     fclose(file_ptr_img);
 }
 
-int file_img_export_asset(unsigned int file_index) {
+int file_img_export_asset(unsigned int file_index, struct dir_file_t *dir_files) {
     size_t asset_size = dir_files[file_index].size * IMG_BLOCK_SIZE;
 
     // copy asset from IMG to buffer
