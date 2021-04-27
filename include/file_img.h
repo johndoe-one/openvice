@@ -13,6 +13,8 @@
 
 int file_img_load(const char *filepath);
 int file_img_export_asset(unsigned int file_index, struct dir_file *df);
+char *file_img_get_asset(unsigned int file_index, struct dir_file *df);
+void file_img_asset_cleanup(char *buffer);
 void file_img_cleanup();
 
 #endif

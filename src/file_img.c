@@ -22,9 +22,11 @@ void file_img_cleanup()
 
 int file_img_export_asset(unsigned int file_index, struct dir_file *df)
 {
-        size_t asset_size = df[file_index].size * IMG_BLOCK_SIZE;
-        char *buf = NULL;
+        char *buf;
+        size_t asset_size;
         FILE *fp_write;
+
+        asset_size = df[file_index].size * IMG_BLOCK_SIZE;
 
         /* copy asset from IMG to buffer */
         buf = (char*)malloc(asset_size);
@@ -40,4 +42,24 @@ int file_img_export_asset(unsigned int file_index, struct dir_file *df)
 
         printf("File %s was saved successfully\n", df[file_index].name);
         return 0;
+}
+
+char *file_img_get_asset(unsigned int file_index, struct dir_file *df)
+{
+        char *buf;
+        size_t asset_size;
+
+        asset_size = df[file_index].size * IMG_BLOCK_SIZE;
+
+        /* copy asset from IMG to buffer */
+        buf = (char*)malloc(asset_size);
+        fseek(file_ptr_img, df[file_index].offset * IMG_BLOCK_SIZE, SEEK_SET);
+        fread(buf, asset_size, 1, file_ptr_img);
+
+        return buf;
+}
+
+void file_img_asset_cleanup(char *buffer)
+{
+        free(buffer);
 }

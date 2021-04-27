@@ -3,6 +3,9 @@
 #include "window.h"
 #include "file_dir.h"
 #include "file_img.h"
+#include "file_dff.h"
+
+#define ASSET_INDEX 64 /* wmyri.dff in IMG file */
 
 int main(int argc, char *argv[]) {
         int err;
@@ -12,9 +15,13 @@ int main(int argc, char *argv[]) {
                 "\\models\\gta3.img";
 
         struct dir_file *dir_files = file_dir_load(dir_filepath);
+        file_dir_dump(ASSET_INDEX, dir_files);
         file_img_load(img_filepath);
 
-        file_img_export_asset(0, dir_files);
+        char *asset_buffer = file_img_get_asset(ASSET_INDEX, dir_files);
+        file_dff_load(asset_buffer);
+        file_dff_cleanup();
+        file_img_asset_cleanup(asset_buffer);
 
         err = window_init();
         if (!err) {
