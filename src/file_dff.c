@@ -2,6 +2,11 @@
 
 int file_dff_load(const char *bytes)
 {
+        return 0;
+}
+
+void file_dff_dump(const char *bytes)
+{
         struct header section_clump;
         memcpy(&section_clump, bytes, sizeof(struct header));
 
@@ -17,8 +22,6 @@ int file_dff_load(const char *bytes)
         } else {
                 printf("DFF header: this is not CHUNK_CLUMP section");
         }
-
-        return 0;
 }
 
 void file_dff_cleanup()

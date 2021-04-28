@@ -9,18 +9,31 @@
 
 int main(int argc, char *argv[]) {
         int err;
+        char *asset_buffer;
+        struct dir_file *dir_files;
+
         const char *dir_filepath = "C:\\Games\\Grand Theft Auto Vice City"
                 "\\models\\gta3.dir";
         const char *img_filepath = "C:\\Games\\Grand Theft Auto Vice City"
                 "\\models\\gta3.img";
 
-        struct dir_file *dir_files = file_dir_load(dir_filepath);
+        /* load DIR file */
+        dir_files = file_dir_load(dir_filepath);
         file_dir_dump(ASSET_INDEX, dir_files);
+
+        /* load IMG file */
         file_img_load(img_filepath);
 
-        char *asset_buffer = file_img_get_asset(ASSET_INDEX, dir_files);
+        file_img_export_asset(dir_files[0].name, dir_files[0].size,
+                dir_files[0].offset);
+        asset_buffer = file_img_get_asset(dir_files[ASSET_INDEX].size,
+                dir_files[ASSET_INDEX].offset);
+
+        /* load DFF file from IMG */
         file_dff_load(asset_buffer);
+        file_dff_dump(asset_buffer);
         file_dff_cleanup();
+
         file_img_asset_cleanup(asset_buffer);
 
         err = window_init();
