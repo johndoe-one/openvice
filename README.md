@@ -10,11 +10,11 @@ Project uses C89 language and cross-platform libraries so you can build engine f
 
 ### Windows
 1. Install [MinGW](https://code.visualstudio.com/docs/languages/cpp#_example-install-mingwx64);
-1.1. Build from source libraries: GLFW, GLEW;
-2. Open Command Shell;
-3. Go to source directory;
-4. Enter **mingw32-make.exe**;
-5. In folder **build** execute app **openvice.exe**.
+2. Build from source libraries: GLFW, GLEW;
+3. Open Command Shell;
+4. Go to source directory;
+5. Enter **mingw32-make.exe**;
+6. In folder **build** execute app **openvice.exe**.
 
 ### Linux
 1. Install GCC, GLFW, GLEW, Make (sudo apt-get install gcc glfw glew make);
