@@ -17,7 +17,7 @@ Project uses C89 language and cross-platform libraries so you can build engine f
 6. In folder **build** execute app **openvice.exe**.
 
 ### Linux
-1. Install GCC, GLFW, GLEW, Make (sudo apt-get install gcc glfw glew make);
+1. Install GCC, GLFW, GLEW, make (sudo apt-get install gcc glfw glew make);
 2. Open Terminal;
 3. Go to source directory;
 4. Enter **make**;
