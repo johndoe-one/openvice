@@ -32,6 +32,10 @@ struct header {
         uint16_t version_number;
 };
 
+struct clump {
+        uint32_t object_count;
+};
+
 int file_dff_load(const char *bytes);
 void file_dff_dump(const char *bytes);
 void file_dff_cleanup();
