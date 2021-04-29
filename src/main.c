@@ -24,8 +24,8 @@ int main(int argc, char *argv[]) {
         /* load IMG file */
         file_img_load(img_filepath);
 
-        file_img_export_asset(dir_files[0].name, dir_files[0].size,
-                dir_files[0].offset);
+        file_img_export_asset(dir_files[ASSET_INDEX].name,
+                dir_files[ASSET_INDEX].size, dir_files[ASSET_INDEX].offset);
         asset_buffer = file_img_get_asset(dir_files[ASSET_INDEX].size,
                 dir_files[ASSET_INDEX].offset);
 
