@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
         /* load DIR file */
         dir_files = file_dir_load(dir_filepath);
-        file_dir_dump(ASSET_INDEX, dir_files);
+        file_dir_dump_asset(ASSET_INDEX, dir_files);
 
         /* load IMG file */
         file_img_load(img_filepath);

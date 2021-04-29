@@ -40,7 +40,7 @@ int file_img_export_asset(const char *filename, uint32_t size, uint32_t offset)
 
         free(buf);
 
-        printf("File %s was saved successfully\n", filename);
+        printf("File %s from IMG was saved successfully\n", filename);
         return 0;
 }
 

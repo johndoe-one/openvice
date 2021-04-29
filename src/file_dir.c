@@ -31,14 +31,16 @@ struct dir_file *file_dir_load(const char *filepath)
         return dir_files;
 }
 
-void file_dir_dump(unsigned int file_index, struct dir_file *df)
+void file_dir_dump_asset(unsigned int file_index, struct dir_file *df)
 {
-        printf("DIR dump file: name = %s\n", df[file_index].name);
-        printf("DIR dump file: offset = %d\n", df[file_index].offset);
-        printf("DIR dump file: size = %d\n", df[file_index].size);
+        printf("Dump DIR file asset\n");
+        printf("File name = %s\n", df[file_index].name);
+        printf("File offset = %d\n", df[file_index].offset);
+        printf("File size = %d\n", df[file_index].size);
+        printf("End dump DIR file\n");
 }
 
 void file_dir_cleanup(struct dir_file *df)
 {
-    free(df);
+        free(df);
 }
