@@ -6,10 +6,10 @@ OpenVice - open source cross-platform engine for Grand Theft Auto: Vice City. Co
 * OpenGL 3.3.
 
 ## Build
-Project uses C89 language and cross-platform libraries so you can build engine for many OS (including Windows, GNU/Linux, macOS).
+Project uses C89 language and cross-platform libraries, so you can build engine for many OS (including Windows, GNU/Linux, macOS).
 
 ### Windows
-1. Install Visual Studio Community 2019 (or any Visual Studio version);
+1. Install **Visual Studio Community 2019** (or any Visual Studio version);
 2. Copy GLFW source code to **glfw_source/** folder in root folder project;
 3. Copy GLEW source code to **glew_source/** folder in root folder project;
 4. Open **Command shell**;
@@ -18,7 +18,7 @@ Project uses C89 language and cross-platform libraries so you can build engine f
 7. Execute **openvice.exe**
 
 ### Linux
-1. Install GCC, cmake (sudo apt-get install gcc cmake);
+1. Install **GCC**, **cmake** (sudo apt-get install gcc cmake);
 2. Copy GLFW source code to **glfw_source/** folder in root folder project;
 3. Copy GLEW source code to **glew_source/** folder in root folder project;
 4. Open **Terminal**;
@@ -35,4 +35,4 @@ Project uses C89 language and cross-platform libraries so you can build engine f
 [GNU GPL 2](https://en.wikipedia.org/wiki/GNU_General_Public_License#Version_2).
 
 ## Links
-* [Grand Theft Auto: Vice City](https://www.rockstargames.com/games/vicecity);
+* [Grand Theft Auto: Vice City](https://www.rockstargames.com/games/vicecity).
