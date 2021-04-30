@@ -1,5 +1,5 @@
 # OpenVice
-OpenVice - open source engine for Grand Theft Auto: Vice City. Engine written on C language for simple and clear development (standard C language C89 with K&R / Linux Kernel code style). You will need an original copy of the Grand Theft Auto: Vice City to use this engine.
+OpenVice - open source cross-platform engine for Grand Theft Auto: Vice City. Code written on C language for simple and clear development (standard C language C89 with K&R / Linux Kernel code style). You will need an original copy of the Grand Theft Auto: Vice City to use OpenVice.
 
 ## System requirments 
 * Supported OS: Windows, GNU/Linux, macOS;
@@ -9,26 +9,30 @@ OpenVice - open source engine for Grand Theft Auto: Vice City. Engine written on
 Project uses C89 language and cross-platform libraries so you can build engine for many OS (including Windows, GNU/Linux, macOS).
 
 ### Windows
-1. Install [MinGW](https://code.visualstudio.com/docs/languages/cpp#_example-install-mingwx64);
-2. Build from source libraries: GLFW, GLEW;
-3. Open Command Shell;
-4. Go to source directory;
-5. Enter **mingw32-make.exe**;
-6. In folder **build** execute app **openvice.exe**.
+1. Install Visual Studio Community 2019 (or any Visual Studio version);
+2. Copy GLFW source code to **glfw_source/** folder in root folder project;
+3. Copy GLEW source code to **glew_source/** folder in root folder project;
+4. Open **Command shell**;
+5. Go to project root directory;
+6. Build project with **cmake**;
+7. Execute **openvice.exe**
 
 ### Linux
-1. Install GCC, GLFW, GLEW, make (sudo apt-get install gcc glfw glew make);
-2. Open Terminal;
-3. Go to source directory;
-4. Enter **make**;
-5. In folder **build** execute app **openvice**.
+1. Install GCC, cmake (sudo apt-get install gcc cmake);
+2. Copy GLFW source code to **glfw_source/** folder in root folder project;
+3. Copy GLEW source code to **glew_source/** folder in root folder project;
+4. Open **Terminal**;
+5. Go to project root directory;
+6. Build project with **cmake**;
+7. Execute **./openvice**
 
 ### Dependencies
 * [GLFW](https://www.glfw.org/) - Creating windows, contexts and surfaces, receiving input and events;
-* [GLEW](http://glew.sourceforge.net/) - OpenGL Extension Wrangler Library.
+* [GLEW](http://glew.sourceforge.net/) - OpenGL Extension Wrangler Library;
+* [CMake](https://cmake.org/) - Cross-platform tool for build, test, package software.
 
 ## License
-[GNU GPL 2](https://en.wikipedia.org/wiki/GNU_General_Public_License#Version_2)
+[GNU GPL 2](https://en.wikipedia.org/wiki/GNU_General_Public_License#Version_2).
 
 ## Links
-* [Grand Theft Auto: Vice City](https://www.rockstargames.com/games/vicecity)
+* [Grand Theft Auto: Vice City](https://www.rockstargames.com/games/vicecity);
