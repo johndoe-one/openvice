@@ -21,9 +21,8 @@ void file_dff_dump(const char *bytes)
 
         printf("CHUNK_CLUMP header: size = %d\n", 
                 section_clump_header.size);
-        printf("CHUNK_CLUMP header: type = %d\n", 
-                section_clump_header.type);
-        printf("CHUNK_CLUMP header: type (hex) = %#10x\n", 
+        printf("CHUNK_CLUMP header: type = %d (%#x)\n", 
+                section_clump_header.type,
                 section_clump_header.type);
         printf("CHUNK_CLUMP header: unknown = %d\n", 
                 section_clump_header.unknown);
