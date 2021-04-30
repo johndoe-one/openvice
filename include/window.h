@@ -1,5 +1,6 @@
 /*
  * Create window, OpengGL context, receive events, main loop
+ * Copyright (C) 2021 Misha Samoylov
  */
 
 #ifndef ENGINE_H

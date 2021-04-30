@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2021 Misha Samoylov
+ */
+
 #include "window.h"
 
 static GLFWwindow* window;

@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2021 Misha Samoylov
+ */
+
 #include "file_img.h"
 
 static FILE *file_ptr_img;

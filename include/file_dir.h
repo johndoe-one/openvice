@@ -1,5 +1,6 @@
 /*
  * DIR file contains information about files in IMG file
+ * Copyright (C) 2021 Misha Samoylov
  */
 
 #ifndef FILE_DIR_H

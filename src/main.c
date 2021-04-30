@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2021 Misha Samoylov
+ */
+
 #include <stdlib.h>
 
 #include "window.h"

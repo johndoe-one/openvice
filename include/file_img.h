@@ -1,5 +1,6 @@
 /*
  * IMG file contains all assets raw data
+ * Copyright (C) 2021 Misha Samoylov
  */
 
 #ifndef FILE_IMG_H

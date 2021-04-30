@@ -1,5 +1,6 @@
 /*
  * DFF file contains info about 3D model
+ * Copyright (C) 2021 Misha Samoylov
  */
 
 #ifndef FILE_DFF_H

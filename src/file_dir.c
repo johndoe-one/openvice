@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2021 Misha Samoylov
+ */
+
 #include "file_dir.h"
 
 struct dir_file *file_dir_load(const char *filepath)
