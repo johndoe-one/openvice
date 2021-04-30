@@ -14,7 +14,7 @@ Project uses C89 language and cross-platform libraries, so you can build engine 
 3. Copy GLEW source code to **glew_source/** folder in root folder project;
 4. Open **Command shell**;
 5. Go to project root directory;
-6. Build project with **cmake**;
+6. Build project with **cmake** (or with cmake-gui);
 7. Execute **openvice.exe**
 
 ### Linux
