@@ -11,7 +11,8 @@
 
 #define ASSET_INDEX 64 /* wmyri.dff in IMG file */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
         int err;
         char *asset_buffer;
         struct dir_file *dir_files;
