@@ -36,7 +36,6 @@ int main(int argc, char *argv[])
 
         /* load DFF file from IMG */
         file_dff_load(asset_buffer);
-        file_dff_dump(asset_buffer);
         file_dff_cleanup();
 
         file_img_asset_cleanup(asset_buffer);

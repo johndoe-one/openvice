@@ -25,6 +25,11 @@ struct dir_file *file_dir_load(const char *filepath)
         dir_files = (struct dir_file*)malloc(
                 sizeof(struct dir_file) * assets_count);
 
+        if (dir_files == NULL) {
+                printf("Cannot allocate memory for variable dir_files\n");
+                return NULL;
+        }
+
         /* copy assets with them info to variable array dir_file */
         fseek(fp, 0, SEEK_SET);
         fread(dir_files, sizeof(struct dir_file), assets_count, fp);
