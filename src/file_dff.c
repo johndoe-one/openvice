@@ -7,8 +7,8 @@
 static struct header read_header(const char* bytes, size_t* offset)
 {
         struct header head;
-        memcpy(&head, bytes + *offset, sizeof(struct header));
 
+        memcpy(&head, bytes + *offset, sizeof(struct header));
         *offset += sizeof(struct header);
 
         return head;
@@ -26,14 +26,14 @@ static void dump_header(struct header head, size_t offset)
 static struct clump_data read_clump_data(const char* bytes, size_t* offset)
 {
         struct clump_data data;
+
         memcpy(&data, bytes + *offset, sizeof(struct clump_data));
+        *offset += sizeof(struct clump_data);
 
         printf("object_count = %d\n", data.object_count);
         printf("lights_count = %d\n", data.lights_count);
         printf("camera_count = %d\n", data.camera_count);
         printf("\n");
-
-        *offset += sizeof(struct clump_data);
 
         return data;
 }
@@ -98,11 +98,12 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
 
 static void read_geometry_list_data(const char* bytes, size_t* offset)
 {
-        int i;
-        uint32_t geometry_count;
         struct header head;
-
+        uint32_t geometry_count;
         struct geometry_data geometry_data;
+
+        size_t temp_offset;
+        int i;
 
         memcpy(&geometry_count, bytes + *offset, sizeof(uint32_t));
         *offset += sizeof(uint32_t);
@@ -113,7 +114,7 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                 printf("header CHUNK_GEOMETRY\n");
                 head = read_header(bytes, offset);
 
-                size_t temp_offset = *offset;
+                temp_offset = *offset;
 
                 printf("header CHUNK_STRUCT\n");
                 read_header(bytes, offset);
@@ -131,7 +132,7 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                 if (head.version_number < 0x34000)
                         *offset += 4 + 4 + 4;
 
-                /* skip to next */
+                /* skip to next CHUNK_GEOMETRY */
                 *offset = temp_offset;
                 *offset += head.size;
         }
@@ -141,17 +142,8 @@ static struct atomic_data read_atomic_data(const char *bytes, size_t *offset)
 {
         struct atomic_data data;
 
-        memcpy(&data.frame_index, bytes + *offset, sizeof(uint32_t));
-        *offset += sizeof(uint32_t);
-
-        memcpy(&data.geometry_index, bytes + *offset, sizeof(uint32_t));
-        *offset += sizeof(uint32_t);
-
-        memcpy(&data.unknown_a, bytes + *offset, sizeof(uint32_t));
-        *offset += sizeof(uint32_t);
-
-        memcpy(&data.unknown_b, bytes + *offset, sizeof(uint32_t));
-        *offset += sizeof(uint32_t);
+        memcpy(&data, bytes + *offset, sizeof(data));
+        *offset += sizeof(data);
 
         printf("frame_index = %d\n", data.frame_index);
         printf("geometry_index = %d\n", data.geometry_index);
