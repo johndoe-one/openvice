@@ -72,11 +72,7 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
                 printf("header CHUNK_EXTENSION\n");
                 read_header(bytes, offset);
 
-                printf("header CHUNK_FRAME\n");
-                head = read_header(bytes, offset);
-                *offset += head.size;
-
-                printf("header CHUNK_HANIM_PLG\n");
+                printf("header CHUNK_FRAME or CHUNK_HANIM or undefined\n");
                 head = read_header(bytes, offset);
                 *offset += head.size;
         }
@@ -98,6 +94,31 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                 head = read_header(bytes, offset);
                 *offset += head.size;
         }
+}
+
+static struct atomic_data read_atomic_data(const char *bytes, size_t *offset)
+{
+        struct atomic_data data;
+
+        memcpy(&data.frame_index, bytes + *offset, sizeof(uint32_t));
+        *offset += sizeof(uint32_t);
+
+        memcpy(&data.geometry_index, bytes + *offset, sizeof(uint32_t));
+        *offset += sizeof(uint32_t);
+
+        memcpy(&data.unknown_a, bytes + *offset, sizeof(uint32_t));
+        *offset += sizeof(uint32_t);
+
+        memcpy(&data.unknown_b, bytes + *offset, sizeof(uint32_t));
+        *offset += sizeof(uint32_t);
+
+        printf("frame_index = %d\n", data.frame_index);
+        printf("geometry_index = %d\n", data.geometry_index);
+        printf("unknown_a = %d\n", data.unknown_a);
+        printf("unknown_b = %d\n", data.unknown_b);
+        printf("\n");
+
+        return data;
 }
 
 int file_dff_load(const char *bytes)
@@ -140,6 +161,15 @@ int file_dff_load(const char *bytes)
         for (i = 0; i < cl_data.object_count; i++) {
                 printf("header CHUNK_ATOMIC\n");
                 header = read_header(bytes, &offset);
+
+                printf("header CHUNK_STRUCT\n");
+                header = read_header(bytes, &offset);
+
+                read_atomic_data(bytes, &offset);
+
+                printf("header CHUNK_EXTENSION\n");
+                header = read_header(bytes, &offset);
+                offset += header.size;
         }
 
         printf("End dump DFF file\n");

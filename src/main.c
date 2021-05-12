@@ -9,7 +9,7 @@
 #include "file_img.h"
 #include "file_dff.h"
 
-#define ASSET_INDEX 64 /* wmyri.dff in IMG file */
+#define ASSET_INDEX 1010
 
 int main(int argc, char *argv[])
 {

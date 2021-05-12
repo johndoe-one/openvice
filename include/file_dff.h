@@ -39,6 +39,13 @@ struct clump_data {
         uint32_t camera_count;
 };
 
+struct atomic_data {
+        uint32_t frame_index;
+        uint32_t geometry_index;
+        uint32_t unknown_a;
+        uint32_t unknown_b;
+};
+
 int file_dff_load(const char *bytes);
 void file_dff_cleanup();
 
