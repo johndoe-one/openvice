@@ -119,10 +119,12 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                 printf("header CHUNK_STRUCT\n");
                 read_header(bytes, offset);
 
-                memcpy(&geometry_data, bytes + *offset, sizeof(struct geometry_data));
+                memcpy(&geometry_data, bytes + *offset,
+                        sizeof(struct geometry_data));
                 *offset += sizeof(struct geometry_data);
 
-                printf("triangle_count (face count) = %d\n", geometry_data.triangle_count);
+                printf("triangle_count (face count) = %d\n",
+                        geometry_data.triangle_count);
                 printf("vertex_count = %d\n", geometry_data.vertex_count);
 
                 /* skip light info */
