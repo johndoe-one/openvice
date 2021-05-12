@@ -11,13 +11,16 @@ static struct header read_header(const char* bytes, size_t* offset)
 
         *offset += sizeof(struct header);
 
+        return head;
+}
+
+static void dump_header(struct header head, size_t offset)
+{
         printf("type = %d (%#x)\n", head.type, head.type);
         printf("size = %d bytes\n", head.size);
         printf("version_number = %#x\n", head.version_number);
-        printf("offset = %d\n", (int)*offset);
+        printf("offset = %d\n", (int)offset);
         printf("\n");
-
-        return head;
 }
 
 static struct clump_data read_clump_data(const char* bytes, size_t* offset)
@@ -50,7 +53,8 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
         memcpy(&num_frames, bytes + *offset, sizeof(uint32_t));
         *offset += sizeof(uint32_t);
 
-        printf("num_frames:% d\n", num_frames);
+        printf("num_frames: %d\n", num_frames);
+        printf("\n");
 
         /* frames in struct */
         for (i = 0; i < num_frames; i++) {
@@ -72,8 +76,21 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
                 printf("header CHUNK_EXTENSION\n");
                 read_header(bytes, offset);
 
-                printf("header CHUNK_FRAME or CHUNK_HANIM or undefined\n");
+                printf("header ");
                 head = read_header(bytes, offset);
+                switch(head.type) {
+                        case CHUNK_FRAME:
+                                printf("CHUNK_FRAME\n");
+                                break;
+                        case CHUNK_HANIM_PLG:
+                                printf("CHUNK_HANIM_PLG\n");
+                                break;
+                        default:
+                                printf("undefined\n");
+                                break;
+                }
+                dump_header(head, *offset);
+
                 *offset += head.size;
         }
 }
@@ -124,21 +141,22 @@ static struct atomic_data read_atomic_data(const char *bytes, size_t *offset)
 int file_dff_load(const char *bytes)
 {
         struct header header;
+        struct clump_data clump_data;
         size_t offset;
-
         int i;
+
+        offset = 0;
 
         printf("Dump DFF file\n");
 
         printf("header CHUNK_CLUMP\n");
-        offset = 0;
         header = read_header(bytes, &offset);
 
         printf("header CHUNK_STRUCT\n");
         header = read_header(bytes, &offset);
 
         printf("data CHUNK_STRUCT\n");
-        struct clump_data cl_data = read_clump_data(bytes, &offset);
+        clump_data = read_clump_data(bytes, &offset);
 
         printf("header CHUNK_FRAME_LIST\n");
         header = read_header(bytes, &offset);
@@ -158,7 +176,7 @@ int file_dff_load(const char *bytes)
         printf("data CHUNK_STRUCT\n");
         read_geometry_list_data(bytes, &offset);
 
-        for (i = 0; i < cl_data.object_count; i++) {
+        for (i = 0; i < clump_data.object_count; i++) {
                 printf("header CHUNK_ATOMIC\n");
                 header = read_header(bytes, &offset);
 
