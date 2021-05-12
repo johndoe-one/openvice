@@ -46,6 +46,15 @@ struct atomic_data {
         uint32_t unknown_b;
 };
 
+struct geometry_data {
+        uint16_t flags;
+        uint8_t num_uvs;
+        uint8_t has_native_geometry;
+        uint32_t triangle_count;
+        uint32_t vertex_count;
+        uint32_t morph_target_count;
+};
+
 int file_dff_load(const char *bytes);
 void file_dff_cleanup();
 

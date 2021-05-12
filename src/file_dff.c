@@ -78,16 +78,17 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
 
                 printf("header ");
                 head = read_header(bytes, offset);
-                switch(head.type) {
-                        case CHUNK_FRAME:
-                                printf("CHUNK_FRAME\n");
-                                break;
-                        case CHUNK_HANIM_PLG:
-                                printf("CHUNK_HANIM_PLG\n");
-                                break;
-                        default:
-                                printf("undefined\n");
-                                break;
+
+                switch (head.type) {
+                case CHUNK_FRAME:
+                        printf("CHUNK_FRAME\n");
+                        break;
+                case CHUNK_HANIM_PLG:
+                        printf("CHUNK_HANIM_PLG\n");
+                        break;
+                default:
+                        printf("undefined\n");
+                        break;
                 }
                 dump_header(head, *offset);
 
@@ -101,6 +102,8 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
         uint32_t geometry_count;
         struct header head;
 
+        struct geometry_data geometry_data;
+
         memcpy(&geometry_count, bytes + *offset, sizeof(uint32_t));
         *offset += sizeof(uint32_t);
 
@@ -109,6 +112,27 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
         for (i = 0; i < geometry_count; i++) {
                 printf("header CHUNK_GEOMETRY\n");
                 head = read_header(bytes, offset);
+
+                size_t temp_offset = *offset;
+
+                printf("header CHUNK_STRUCT\n");
+                read_header(bytes, offset);
+
+                memcpy(&geometry_data, bytes + *offset, sizeof(struct geometry_data));
+                *offset += sizeof(struct geometry_data);
+
+                printf("triangle_count (face count) = %d\n", geometry_data.triangle_count);
+                printf("vertex_count = %d\n", geometry_data.vertex_count);
+
+                /* skip light info */
+                /* float 4 bytes ambient */
+                /* float 4 bytes diffuse */
+                /* float 4 bytes specular */
+                if (head.version_number < 0x34000)
+                        *offset += 4 + 4 + 4;
+
+                /* skip to next */
+                *offset = temp_offset;
                 *offset += head.size;
         }
 }
