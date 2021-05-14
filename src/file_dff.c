@@ -74,32 +74,35 @@ static void read_frame_list_data(const char* bytes, size_t *offset, size_t heade
                 *offset += sizeof(uint32_t);
         }
 
-        printf("header CHUNK_EXTENSION\n");
-        header_extension = read_header(bytes, offset);
+        for (i = 0; i < num_frames; i++) {
+                printf("header CHUNK_EXTENSION\n");
+                header_extension = read_header(bytes, offset);
 
-        end = *offset;
-        end += header_extension.size;
+                end = *offset;
+                end += header_extension.size;
 
-        /* headers extensions */
-        while (*offset < end) {
-                printf("header ");
-                header_chunk = read_header(bytes, offset);
+                /* headers extension */
+                while (*offset < end) {
+                        printf("header ");
+                        header_chunk = read_header(bytes, offset);
 
-                switch (header_chunk.type) {
-                case CHUNK_FRAME:
-                        printf("CHUNK_FRAME\n");
-                        *offset += header_chunk.size;
-                        break;
-                case CHUNK_HANIM_PLG:
-                        printf("CHUNK_HANIM_PLG\n");
-                        *offset += header_chunk.size;
-                        break;
-                default:
-                        printf("undefined\n");
-                        break;
+                        switch (header_chunk.type) {
+                        case CHUNK_FRAME:
+                                printf("CHUNK_FRAME\n");
+                                *offset += header_chunk.size;
+                                break;
+                        case CHUNK_HANIM_PLG:
+                                printf("CHUNK_HANIM_PLG\n");
+                                *offset += header_chunk.size;
+                                break;
+                        default:
+                                printf("undefined\n");
+                                *offset += header_chunk.size;
+                                break;
+                        }
+
+                        dump_header(header_chunk, *offset);
                 }
-
-                dump_header(header_chunk, *offset);
         }
 }
 

@@ -9,7 +9,7 @@
 #include "file_img.h"
 #include "file_dff.h"
 
-#define ASSET_INDEX 1250 /* lotion.dff */
+#define ASSET_INDEX 1020 /* tropic.dff */
 
 int main(int argc, char *argv[])
 {
