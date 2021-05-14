@@ -38,7 +38,7 @@ static struct clump_data read_clump_data(const char* bytes, size_t* offset)
         return data;
 }
 
-static void read_frame_list_data(const char* bytes, size_t *offset)
+static void read_frame_list_data(const char* bytes, size_t *offset, size_t header_size)
 {
         uint32_t num_frames;
         int i;
@@ -48,7 +48,10 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
         uint32_t parent_frame;
         uint32_t align;
 
-        struct header head;
+        struct header header_extension;
+        struct header header_chunk;
+
+        size_t end;
 
         memcpy(&num_frames, bytes + *offset, sizeof(uint32_t));
         *offset += sizeof(uint32_t);
@@ -71,28 +74,32 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
                 *offset += sizeof(uint32_t);
         }
 
+        printf("header CHUNK_EXTENSION\n");
+        header_extension = read_header(bytes, offset);
+
+        end = *offset;
+        end += header_extension.size;
+
         /* headers extensions */
-        for (i = 0; i < num_frames; i++) {
-                printf("header CHUNK_EXTENSION\n");
-                read_header(bytes, offset);
-
+        while (*offset < end) {
                 printf("header ");
-                head = read_header(bytes, offset);
+                header_chunk = read_header(bytes, offset);
 
-                switch (head.type) {
+                switch (header_chunk.type) {
                 case CHUNK_FRAME:
                         printf("CHUNK_FRAME\n");
+                        *offset += header_chunk.size;
                         break;
                 case CHUNK_HANIM_PLG:
                         printf("CHUNK_HANIM_PLG\n");
+                        *offset += header_chunk.size;
                         break;
                 default:
                         printf("undefined\n");
                         break;
                 }
-                dump_header(head, *offset);
 
-                *offset += head.size;
+                dump_header(header_chunk, *offset);
         }
 }
 
@@ -183,7 +190,7 @@ int file_dff_load(const char *bytes)
         header = read_header(bytes, &offset);
 
         printf("data CHUNK_STRUCT\n");
-        read_frame_list_data(bytes, &offset);
+        read_frame_list_data(bytes, &offset, header.size);
 
         printf("header GEOMETRY_LIST\n");
         header = read_header(bytes, &offset);
