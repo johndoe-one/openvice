@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
+
+typedef float float32;
 
 enum chunk_type {
         CHUNK_STRUCT = 1,
@@ -53,6 +56,35 @@ struct geometry_data {
         uint32_t triangle_count;
         uint32_t vertex_count;
         uint32_t morph_target_count;
+};
+
+struct light_info {
+        float32 ambient;
+        float32 diffuse;
+        float32 specular;
+};
+
+struct vertex_color {
+        uint8_t r;
+        uint8_t g;
+        uint8_t b;
+        uint8_t a;
+};
+
+struct tex_coord {
+        float32 u;
+        float32 v;
+};
+
+enum GEOMETRY_LIST_FLAGS {
+        FLAGS_TRISTRIP = 0x01,
+        FLAGS_POSITIONS = 0x02,
+        FLAGS_TEXTURED = 0x04,
+        FLAGS_PRELIT = 0x08,
+        FLAGS_NORMALS = 0x10,
+        FLAGS_LIGHT = 0x20,
+        FLAGS_MODULATEMATERIALCOLOR = 0x40,
+        FLAGS_TEXTURED2 = 0x80
 };
 
 int file_dff_load(const char *bytes);

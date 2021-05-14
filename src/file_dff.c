@@ -38,7 +38,7 @@ static struct clump_data read_clump_data(const char* bytes, size_t* offset)
         return data;
 }
 
-static void read_frame_list_data(const char* bytes, size_t *offset, size_t header_size)
+static void read_frame_list_data(const char* bytes, size_t *offset)
 {
         uint32_t num_frames;
         int i;
@@ -120,7 +120,7 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
 
         printf("geometry_count = %d\n", geometry_count);
 
-        for (i = 0; i < geometry_count; i++) {
+        for (i = 0; i < geometry_count; i++) {               
                 printf("header CHUNK_GEOMETRY\n");
                 head = read_header(bytes, offset);
 
@@ -137,12 +137,44 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                         geometry_data.triangle_count);
                 printf("vertex_count = %d\n", geometry_data.vertex_count);
 
-                /* skip light info */
-                /* float 4 bytes ambient */
-                /* float 4 bytes diffuse */
-                /* float 4 bytes specular */
-                if (head.version_number < 0x34000)
-                        *offset += 4 + 4 + 4;
+                 if (head.version_number < 0x34000) {
+                        struct light_info light_info;
+                        memcpy(&light_info, bytes + *offset, 
+                                sizeof(struct light_info));
+                        *offset += sizeof(struct light_info);
+                }
+
+                if (!geometry_data.has_native_geometry) {
+                        if (geometry_data.flags & FLAGS_PRELIT) {
+                                struct vertex_color* vertex_colors;
+                                size_t sz;
+
+                                sz = geometry_data.vertex_count * sizeof(
+                                        struct vertex_color);
+
+                                vertex_colors = (struct vertex_color*)malloc(
+                                        sz);
+                                memcpy(vertex_colors, bytes + *offset, sz);
+                                *offset += sz;
+
+                                free(vertex_colors);
+                        }
+
+                        if (geometry_data.flags & FLAGS_TEXTURED) {
+                                struct tex_coord*tex_coords;
+                                size_t sz;
+
+                                sz = geometry_data.vertex_count * sizeof(
+                                        struct tex_coord);
+
+                                tex_coords = (struct tex_coord*)malloc(sz);
+                                memcpy(tex_coords, bytes + *offset, sz);
+
+                                *offset += sz;
+
+                                free(tex_coords);
+                        }
+                }
 
                 /* skip to next CHUNK_GEOMETRY */
                 *offset = temp_offset;
@@ -193,7 +225,7 @@ int file_dff_load(const char *bytes)
         header = read_header(bytes, &offset);
 
         printf("data CHUNK_STRUCT\n");
-        read_frame_list_data(bytes, &offset, header.size);
+        read_frame_list_data(bytes, &offset);
 
         printf("header GEOMETRY_LIST\n");
         header = read_header(bytes, &offset);
