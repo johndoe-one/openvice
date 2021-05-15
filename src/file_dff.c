@@ -16,11 +16,9 @@ static struct header read_header(const char* bytes, size_t* offset)
 
 static void dump_header(struct header head, size_t offset)
 {
-        printf("type = %d (%#x)\n", head.type, head.type);
-        printf("size = %d bytes\n", head.size);
-        printf("version_number = %#x\n", head.version_number);
-        printf("offset = %d\n", (int)offset);
-        printf("\n");
+        printf("type %d (%#x), size %d bytes, version %#x, offset %d\n", 
+                head.type, head.type, head.size, head.version_number,
+                (int)offset);
 }
 
 static struct clump_data read_clump_data(const char* bytes, size_t* offset)
@@ -30,10 +28,8 @@ static struct clump_data read_clump_data(const char* bytes, size_t* offset)
         memcpy(&data, bytes + *offset, sizeof(struct clump_data));
         *offset += sizeof(struct clump_data);
 
-        printf("object_count = %d\n", data.object_count);
-        printf("lights_count = %d\n", data.lights_count);
-        printf("camera_count = %d\n", data.camera_count);
-        printf("\n");
+        printf("object_count %d, lights_count %d, camera_count %d\n",
+                data.object_count, data.lights_count, data.camera_count);
 
         return data;
 }
@@ -56,17 +52,16 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
         memcpy(&num_frames, bytes + *offset, sizeof(uint32_t));
         *offset += sizeof(uint32_t);
 
-        printf("num_frames: %d\n", num_frames);
-        printf("\n");
+        printf("num_frames %d\n", num_frames);
 
         /* frames in struct */
         for (i = 0; i < num_frames; i++) {
                 memcpy(rotation_matrix, bytes + *offset, 9 * sizeof(float));
                 *offset += 9 * sizeof(float);
-                
+
                 memcpy(position, bytes + *offset, 3 * sizeof(float));
                 *offset += 3 * sizeof(float);
-                
+
                 memcpy(&parent_frame, bytes + *offset, sizeof(uint32_t));
                 *offset += sizeof(uint32_t);
 
@@ -106,6 +101,107 @@ static void read_frame_list_data(const char* bytes, size_t *offset)
         }
 }
 
+static void read_tex_coords(struct geometry_data geometry_data, 
+        const char* bytes, size_t* offset)
+{
+        size_t sz;
+
+        if (geometry_data.flags & FLAGS_TEXTURED) {
+                struct tex_coord *tex_coords;
+
+                sz = geometry_data.vertex_count * sizeof(
+                        struct tex_coord);
+
+                tex_coords = (struct tex_coord*)malloc(sz);
+                memcpy(tex_coords, bytes + *offset, sz);
+
+                *offset += sz;
+
+                free(tex_coords);
+        }
+
+        if (geometry_data.flags & FLAGS_TEXTURED2) {
+                sz = geometry_data.num_uvs * geometry_data.vertex_count *
+                        sizeof(struct tex_coord);
+
+                for (uint32_t j = 0; j < geometry_data.num_uvs; j++) {
+                        struct tex_coord *tex_coords2;
+
+                        tex_coords2 = (struct tex_coord*)malloc(sz);
+                        memcpy(tex_coords2, bytes + *offset, sz);
+                        *offset += sz;
+
+                        free(tex_coords2);
+                }
+        }
+}
+
+static void read_vertices_and_normals(struct geometry_data geometry_data,
+        const char *bytes, size_t *offset)
+{
+        if (!geometry_data.has_native_geometry) {
+                struct vertex *vertices;
+                size_t sz;
+                int i = 0;
+
+                sz = geometry_data.vertex_count * sizeof(struct vertex);
+                vertices = (struct vertex*)malloc(sz);
+
+                memcpy(vertices, bytes + *offset, sz);
+                *offset += sz;
+
+                for (i = 0; i < geometry_data.vertex_count; i++) {
+                        printf("v %f %f %f\n", vertices[i].x, vertices[i].y,
+                                vertices[i].z);
+                }
+
+                free(vertices);
+
+                if (geometry_data.flags & FLAGS_NORMALS) {
+                        struct vertex* normals;
+                        size_t sz;
+
+                        sz = geometry_data.vertex_count * sizeof(struct vertex);
+                        normals = (struct vertex*)malloc(sz);
+
+                        memcpy(normals, bytes + *offset, sz);
+                        *offset += sz;
+
+                        free(normals);
+                }
+        }
+}
+
+static void read_faces(struct geometry_data geometry_data,
+        const char *bytes, size_t *offset)
+{
+        struct face *faces;
+        size_t sz = geometry_data.face_count * sizeof(struct face);
+
+        faces = (struct face*)malloc(sz);
+        memcpy(faces, bytes + *offset, sz);
+        *offset += sz;
+
+        free(faces);
+}
+
+static void read_vertex_colors(struct geometry_data geometry_data,
+        const char *bytes, size_t *offset)
+{
+        if (geometry_data.flags & FLAGS_PRELIT) {
+                struct vertex_color *vertex_colors;
+                size_t sz;
+
+                sz = geometry_data.vertex_count * sizeof(struct vertex_color);
+
+                vertex_colors = (struct vertex_color*)malloc(sz);
+                memcpy(vertex_colors, bytes + *offset, sz);
+                *offset += sz;
+
+                free(vertex_colors);
+        }
+}
+
 static void read_geometry_list_data(const char* bytes, size_t* offset)
 {
         struct header head;
@@ -134,11 +230,11 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                 *offset += sizeof(struct geometry_data);
 
                 if (geometry_data.flags & FLAGS_TEXTURED)
-                        geometry_data.num_uvs= 1;
+                        geometry_data.num_uvs = 1;
 
-                printf("triangle_count (face count) = %d\n",
-                        geometry_data.triangle_count);
-                printf("vertex_count = %d\n", geometry_data.vertex_count);
+                printf("face_count %d, vertex_count %d\n",
+                        geometry_data.face_count,
+                        geometry_data.vertex_count);
 
                  if (head.version_number < 0x34000) {
                         struct light_info light_info;
@@ -148,96 +244,16 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                 }
 
                 if (!geometry_data.has_native_geometry) {
-                        if (geometry_data.flags & FLAGS_PRELIT) {
-                                struct vertex_color *vertex_colors;
-                                size_t sz;
-
-                                sz = geometry_data.vertex_count * sizeof(
-                                        struct vertex_color);
-
-                                vertex_colors = (struct vertex_color*)malloc(
-                                        sz);
-                                memcpy(vertex_colors, bytes + *offset, sz);
-                                *offset += sz;
-
-                                free(vertex_colors);
-                        }
-
-                        if (geometry_data.flags & FLAGS_TEXTURED) {
-                                struct tex_coord *tex_coords;
-                                size_t sz;
-
-                                sz = geometry_data.vertex_count * sizeof(
-                                        struct tex_coord);
-
-                                tex_coords = (struct tex_coord*)malloc(sz);
-                                memcpy(tex_coords, bytes + *offset, sz);
-
-                                *offset += sz;
-
-                                free(tex_coords);
-                        }
-
-                        if (geometry_data.flags & FLAGS_TEXTURED2) {
-                                size_t sz;
-
-                                sz = geometry_data.num_uvs * geometry_data.vertex_count * sizeof(
-                                        struct tex_coord);
-
-                                for (uint32_t j = 0; j < geometry_data.num_uvs; j++) {
-                                        struct tex_coord* tex_coords2;
-
-                                        tex_coords2 = (struct tex_coord*)malloc(sz);
-                                        memcpy(tex_coords2, bytes + *offset, sz);
-                                        *offset += sz;
-
-                                        free(tex_coords2);
-                                }
-                        }
-
-                        struct face *faces;
-                        size_t sz = geometry_data.triangle_count * sizeof(struct face);
-
-                        faces = (struct face*)malloc(sz);
-                        memcpy(faces, bytes + *offset, sz);
-                        *offset += sz;
-
-                        free(faces);
+                        read_vertex_colors(geometry_data, bytes, offset);
+                        read_tex_coords(geometry_data, bytes, offset);
+                        read_faces(geometry_data, bytes, offset);
                 }
 
                 struct sphere sphere;
                 memcpy(&sphere, bytes + *offset, sizeof(struct sphere));
                 *offset += sizeof(struct sphere);
 
-                if (!geometry_data.has_native_geometry) {
-                        struct vertex *vertices;
-                        size_t sz;
-
-                        sz = geometry_data.vertex_count * sizeof(struct vertex);
-                        vertices = (struct vertex*)malloc(sz);
-
-                        memcpy(vertices, bytes + *offset, sz);
-                        *offset += sz;
-
-                        for (int j = 0; j < geometry_data.vertex_count; j++) {
-                                printf("%f %f %f \n", vertices[j].x, vertices[j].y, vertices[j].z);
-                        }
-
-                        free(vertices);
-
-                        if (geometry_data.flags & FLAGS_NORMALS) {
-                                struct vertex* normals;
-                                size_t sz;
-                                
-                                sz = geometry_data.vertex_count * sizeof(struct vertex);
-                                normals = (struct vertex*)malloc(sz);
-
-                                memcpy(normals, bytes + *offset, sz);
-                                *offset += sz;
-
-                                free(normals);
-                        }
-                }
+                read_vertices_and_normals(geometry_data, bytes, offset);
 
                 /* skip to next CHUNK_GEOMETRY */
                 *offset = temp_offset;
@@ -252,11 +268,10 @@ static struct atomic_data read_atomic_data(const char *bytes, size_t *offset)
         memcpy(&data, bytes + *offset, sizeof(data));
         *offset += sizeof(data);
 
-        printf("frame_index = %d\n", data.frame_index);
-        printf("geometry_index = %d\n", data.geometry_index);
-        printf("unknown_a = %d\n", data.unknown_a);
-        printf("unknown_b = %d\n", data.unknown_b);
-        printf("\n");
+        printf("frame_index %d, geometry_index %d, "
+                "unknown_a = %d, unknown_b = %d\n",
+                data.frame_index, data.geometry_index, data.unknown_a,
+                data.unknown_b);
 
         return data;
 }
@@ -280,6 +295,8 @@ int file_dff_load(const char *bytes)
 
         printf("data CHUNK_STRUCT\n");
         clump_data = read_clump_data(bytes, &offset);
+        
+        printf("\n");
 
         printf("header CHUNK_FRAME_LIST\n");
         header = read_header(bytes, &offset);
@@ -290,6 +307,8 @@ int file_dff_load(const char *bytes)
         printf("data CHUNK_STRUCT\n");
         read_frame_list_data(bytes, &offset);
 
+        printf("\n");
+
         printf("header GEOMETRY_LIST\n");
         header = read_header(bytes, &offset);
 
@@ -298,6 +317,8 @@ int file_dff_load(const char *bytes)
 
         printf("data CHUNK_STRUCT\n");
         read_geometry_list_data(bytes, &offset);
+
+        printf("\n");
 
         for (i = 0; i < clump_data.object_count; i++) {
                 printf("header CHUNK_ATOMIC\n");
@@ -311,6 +332,8 @@ int file_dff_load(const char *bytes)
                 printf("header CHUNK_EXTENSION\n");
                 header = read_header(bytes, &offset);
                 offset += header.size;
+
+                printf("\n");
         }
 
         printf("End dump DFF file\n");
