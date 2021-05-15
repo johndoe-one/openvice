@@ -133,6 +133,9 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                         sizeof(struct geometry_data));
                 *offset += sizeof(struct geometry_data);
 
+                if (geometry_data.flags & FLAGS_TEXTURED)
+                        geometry_data.num_uvs= 1;
+
                 printf("triangle_count (face count) = %d\n",
                         geometry_data.triangle_count);
                 printf("vertex_count = %d\n", geometry_data.vertex_count);
@@ -182,13 +185,13 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                                         struct tex_coord);
 
                                 for (uint32_t j = 0; j < geometry_data.num_uvs; j++) {
-                                        struct tex_coord* tex_coords;
+                                        struct tex_coord* tex_coords2;
 
-                                        tex_coords = (struct tex_coord*)malloc(sz);
-                                        memcpy(tex_coords, bytes + *offset, sz);
+                                        tex_coords2 = (struct tex_coord*)malloc(sz);
+                                        memcpy(tex_coords2, bytes + *offset, sz);
                                         *offset += sz;
 
-                                        free(tex_coords);
+                                        free(tex_coords2);
                                 }
                         }
 
