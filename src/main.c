@@ -17,6 +17,8 @@ int main(int argc, char *argv[])
         char *asset_buffer;
         struct dir_file *dir_files;
 
+        struct model model;
+
         const char *dir_filepath = "C:\\Games\\Grand Theft Auto Vice City"
                 "\\models\\gta3.dir";
         const char *img_filepath = "C:\\Games\\Grand Theft Auto Vice City"
@@ -41,9 +43,13 @@ int main(int argc, char *argv[])
         file_img_asset_cleanup(asset_buffer);
 
         err = window_init();
+
+        err = model_init(&model);
         if (!err) {
-                window_loop();
+                window_loop(model);
         }
+        model_cleanup(model);
+
         window_cleanup();
 
         file_img_cleanup();
