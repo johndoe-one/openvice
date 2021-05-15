@@ -120,7 +120,7 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
 
         printf("geometry_count = %d\n", geometry_count);
 
-        for (i = 0; i < geometry_count; i++) {               
+        for (i = 0; i < geometry_count; i++) {
                 printf("header CHUNK_GEOMETRY\n");
                 head = read_header(bytes, offset);
 
@@ -146,7 +146,7 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
 
                 if (!geometry_data.has_native_geometry) {
                         if (geometry_data.flags & FLAGS_PRELIT) {
-                                struct vertex_color* vertex_colors;
+                                struct vertex_color *vertex_colors;
                                 size_t sz;
 
                                 sz = geometry_data.vertex_count * sizeof(
@@ -161,7 +161,7 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                         }
 
                         if (geometry_data.flags & FLAGS_TEXTURED) {
-                                struct tex_coord*tex_coords;
+                                struct tex_coord *tex_coords;
                                 size_t sz;
 
                                 sz = geometry_data.vertex_count * sizeof(
@@ -173,6 +173,66 @@ static void read_geometry_list_data(const char* bytes, size_t* offset)
                                 *offset += sz;
 
                                 free(tex_coords);
+                        }
+
+                        if (geometry_data.flags & FLAGS_TEXTURED2) {
+                                size_t sz;
+
+                                sz = geometry_data.num_uvs * geometry_data.vertex_count * sizeof(
+                                        struct tex_coord);
+
+                                for (uint32_t j = 0; j < geometry_data.num_uvs; j++) {
+                                        struct tex_coord* tex_coords;
+
+                                        tex_coords = (struct tex_coord*)malloc(sz);
+                                        memcpy(tex_coords, bytes + *offset, sz);
+                                        *offset += sz;
+
+                                        free(tex_coords);
+                                }
+                        }
+
+                        struct face *faces;
+                        size_t sz = geometry_data.triangle_count * sizeof(struct face);
+
+                        faces = (struct face*)malloc(sz);
+                        memcpy(faces, bytes + *offset, sz);
+                        *offset += sz;
+
+                        free(faces);
+                }
+
+                struct sphere sphere;
+                memcpy(&sphere, bytes + *offset, sizeof(struct sphere));
+                *offset += sizeof(struct sphere);
+
+                if (!geometry_data.has_native_geometry) {
+                        struct vertex *vertices;
+                        size_t sz;
+
+                        sz = geometry_data.vertex_count * sizeof(struct vertex);
+                        vertices = (struct vertex*)malloc(sz);
+
+                        memcpy(vertices, bytes + *offset, sz);
+                        *offset += sz;
+
+                        for (int j = 0; j < geometry_data.vertex_count; j++) {
+                                printf("%f %f %f \n", vertices[j].x, vertices[j].y, vertices[j].z);
+                        }
+
+                        free(vertices);
+
+                        if (geometry_data.flags & FLAGS_NORMALS) {
+                                struct vertex* normals;
+                                size_t sz;
+                                
+                                sz = geometry_data.vertex_count * sizeof(struct vertex);
+                                normals = (struct vertex*)malloc(sz);
+
+                                memcpy(normals, bytes + *offset, sz);
+                                *offset += sz;
+
+                                free(normals);
                         }
                 }
 

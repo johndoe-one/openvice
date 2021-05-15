@@ -76,6 +76,28 @@ struct tex_coord {
         float32 v;
 };
 
+struct face {
+        uint16_t vertex_2;
+        uint16_t vertex_1;
+        uint16_t material_id;
+        uint16_t vertex_3;
+};
+
+struct sphere {
+        float32 x;
+        float32 y;
+        float32 z;
+        float32 radius;
+        uint32_t has_position;
+        uint32_t has_normal;
+};
+
+struct vertex {
+        float32 x;
+        float32 y;
+        float32 z;
+};
+
 enum GEOMETRY_LIST_FLAGS {
         FLAGS_TRISTRIP = 0x01,
         FLAGS_POSITIONS = 0x02,
