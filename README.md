@@ -27,6 +27,7 @@ Project uses C89 language and cross-platform libraries, so you can build engine 
 7. Execute **./openvice**
 
 ### Dependencies
+* [CGLM](https://github.com/recp/cglm) - Mathematics library (with OpenGL compatibility)
 * [GLFW](https://www.glfw.org/) - Creating windows, contexts and surfaces, receiving input and events;
 * [GLEW](http://glew.sourceforge.net/) - OpenGL Extension Wrangler Library;
 * [CMake](https://cmake.org/) - Cross-platform tool for build, test, package software.
