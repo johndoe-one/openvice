@@ -220,25 +220,23 @@ int model_init(struct model *pmodel)
 
 void model_draw(struct model model)
 {
+        mat4 m_projection, m_view, m_model;
+        GLuint projection_location, view_location, model_location;
+
+        camera_get_projection(m_projection);
+        camera_get_view(m_view);
+        glm_mat4_identity(m_model);
+
         glUseProgram(model.shader_program);
 
-        mat4 projection;
-        camera_get_projection(projection);
-
-        mat4 view;
-        camera_get_view(&view);
-
-        mat4 mat_model;
-        glm_mat4_identity(mat_model);
-
-        GLuint projection_id = glGetUniformLocation(model.shader_program,
+        projection_location = glGetUniformLocation(model.shader_program,
                 "projection");
-        GLuint view_id = glGetUniformLocation(model.shader_program, "view");
-        GLuint model_id = glGetUniformLocation(model.shader_program, "model");
+        view_location = glGetUniformLocation(model.shader_program, "view");
+        model_location = glGetUniformLocation(model.shader_program, "model");
 
-        glUniformMatrix4fv(projection_id, 1, GL_FALSE, projection[0]);
-        glUniformMatrix4fv(view_id, 1, GL_FALSE, view[0]);
-        glUniformMatrix4fv(model_id, 1, GL_FALSE, mat_model[0]);
+        glUniformMatrix4fv(projection_location, 1, GL_FALSE, m_projection[0]);
+        glUniformMatrix4fv(view_location, 1, GL_FALSE, m_view[0]);
+        glUniformMatrix4fv(model_location, 1, GL_FALSE, m_model[0]);
 
         glBindVertexArray(model.VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
