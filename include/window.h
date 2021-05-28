@@ -11,9 +11,12 @@
 #define WINDOW_HEIGHT 768
 
 #include <stdio.h>
+#include <assert.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "camera.h"
 
 struct model {
         GLuint VAO;

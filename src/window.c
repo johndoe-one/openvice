@@ -15,6 +15,14 @@ static void key_callback(GLFWwindow* window,
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
+
+        if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+                camera_forward();
+        }
+
+        if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+                camera_backward();
+        }
 }
 
 int window_init()
@@ -47,14 +55,19 @@ int window_init()
                 return 1;
         }
 
+        // configure global opengl state
+        // -----------------------------
+        glEnable(GL_DEPTH_TEST);
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
         return 0;
 }
 
 void window_loop(struct model model)
 {
         while (!glfwWindowShouldClose(window)) {
-                glClear(GL_COLOR_BUFFER_BIT);
-                glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+                glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
                 model_draw(model);
 
@@ -82,16 +95,20 @@ static int create_program_shader(GLuint *pshader_program)
 
         const char* vertex_shader_source = "#version 330 core\n"
                 "layout (location = 0) in vec3 aPos;\n"
+                "uniform mat4 model;\n"
+                "uniform mat4 view;\n"
+                "uniform mat4 projection;\n"
                 "void main()\n"
                 "{\n"
-                "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                "    gl_Position = projection * view * model * vec4(aPos, 1.0);"
+                "\n"
                 "}\0";
         const char* fragment_shader_source = "#version 330 core\n"
                 "out vec4 FragColor;\n"
                 "void main()\n"
                 "{\n"
-                "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                "}\n\0";
+                "   FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
+                "}\0";
 
         /* vertex shader */
         vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -194,6 +211,7 @@ int model_init(struct model *pmodel)
         model.VAO = VAO;
         model.VBO = VBO;
         model.EBO = EBO;
+        model.shader_program = shader_program;
 
         *pmodel = model;
 
@@ -203,6 +221,25 @@ int model_init(struct model *pmodel)
 void model_draw(struct model model)
 {
         glUseProgram(model.shader_program);
+
+        mat4 projection;
+        camera_get_projection(projection);
+
+        mat4 view;
+        camera_get_view(&view);
+
+        mat4 mat_model;
+        glm_mat4_identity(mat_model);
+
+        GLuint projection_id = glGetUniformLocation(model.shader_program,
+                "projection");
+        GLuint view_id = glGetUniformLocation(model.shader_program, "view");
+        GLuint model_id = glGetUniformLocation(model.shader_program, "model");
+
+        glUniformMatrix4fv(projection_id, 1, GL_FALSE, projection[0]);
+        glUniformMatrix4fv(view_id, 1, GL_FALSE, view[0]);
+        glUniformMatrix4fv(model_id, 1, GL_FALSE, mat_model[0]);
+
         glBindVertexArray(model.VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
@@ -212,5 +249,6 @@ void model_cleanup(struct model model)
         glDeleteVertexArrays(1, &model.VAO);
         glDeleteBuffers(1, &model.VBO);
         glDeleteBuffers(1, &model.EBO);
+
         glDeleteProgram(model.shader_program);
 }
