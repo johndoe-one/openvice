@@ -1,3 +1,8 @@
+/*
+ * Controls in-game camera
+ * Copyright (C) 2021 Misha Samoylov
+ */
+
 #ifndef CAMERA_H
 #define CAMERA_H
 

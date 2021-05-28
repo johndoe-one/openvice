@@ -167,6 +167,11 @@ static void read_vertices_and_normals(struct geometry_data geometry_data,
                         memcpy(normals, bytes + *offset, sz);
                         *offset += sz;
 
+                        for (i = 0; i < geometry_data.vertex_count; i++) {
+                                printf("n %f %f %f\n", normals[i].x,
+                                        normals[i].y, normals[i].z);
+                        }
+
                         free(normals);
                 }
         }
